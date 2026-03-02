@@ -1,0 +1,64 @@
+.dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.heroSection {
+  margin-bottom: 8px;
+}
+
+.pageTitle {
+  font-size: 1.6rem;
+  font-weight: 800;
+  margin: 0 0 6px;
+  background: linear-gradient(135deg, #fff, rgba(255, 255, 255, 0.7));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.pageDesc {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+  max-width: 520px;
+}
+
+/* ゲージグリッド */
+.gaugeSection {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius);
+  padding: 24px;
+}
+
+.gaugeGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  justify-content: center;
+  align-items: flex-end;
+}
+
+/* 情報パネルグリッド */
+.panelSection {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+}
+
+/* モバイル */
+@media (max-width: 768px) {
+  .dashboard {
+    padding-bottom: 80px;
+  }
+
+  .gaugeGrid {
+    gap: 12px;
+  }
+
+  .panelSection {
+    grid-template-columns: 1fr;
+  }
+}

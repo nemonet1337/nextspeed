@@ -1,0 +1,59 @@
+.statusBar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    transition: background 0.3s;
+}
+
+.disconnected {
+    background: #555;
+}
+
+.connecting {
+    background: #f5a623;
+    animation: pulse 1s infinite;
+}
+
+.connected {
+    background: #4cd964;
+    box-shadow: 0 0 8px rgba(76, 217, 100, 0.5);
+}
+
+.error {
+    background: #ff3b30;
+    box-shadow: 0 0 8px rgba(255, 59, 48, 0.5);
+}
+
+.statusText {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.ecuBadge {
+    padding: 2px 8px;
+    border-radius: 4px;
+    background: rgba(0, 210, 255, 0.15);
+    color: #00d2ff;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+}
+
+@keyframes pulse {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.4;
+    }
+}

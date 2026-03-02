@@ -1,0 +1,110 @@
+.header {
+    position: fixed;
+    top: 0;
+    left: var(--sidebar-width);
+    right: 0;
+    height: var(--header-height);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 24px;
+    background: rgba(10, 10, 20, 0.85);
+    border-bottom: 1px solid var(--border-subtle);
+    backdrop-filter: blur(20px);
+    z-index: 90;
+}
+
+.left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #fff;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.2s ease;
+}
+
+.btn:hover {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.2);
+    transform: translateY(-1px);
+}
+
+.btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.primary {
+    background: rgba(0, 210, 255, 0.15);
+    border-color: rgba(0, 210, 255, 0.3);
+    color: var(--accent-cyan);
+}
+
+.primary:hover {
+    background: rgba(0, 210, 255, 0.25);
+    box-shadow: 0 0 16px rgba(0, 210, 255, 0.15);
+}
+
+.secondary {
+    background: rgba(74, 108, 247, 0.12);
+    border-color: rgba(74, 108, 247, 0.25);
+    color: var(--accent-blue);
+}
+
+.secondary:hover {
+    background: rgba(74, 108, 247, 0.22);
+    box-shadow: 0 0 16px rgba(74, 108, 247, 0.15);
+}
+
+.danger {
+    background: rgba(255, 59, 48, 0.12);
+    border-color: rgba(255, 59, 48, 0.25);
+    color: var(--accent-red);
+}
+
+.danger:hover {
+    background: rgba(255, 59, 48, 0.22);
+    box-shadow: 0 0 16px rgba(255, 59, 48, 0.15);
+}
+
+.btnIcon {
+    font-size: 1rem;
+}
+
+.unsupported {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+/* モバイル */
+@media (max-width: 768px) {
+    .header {
+        left: 0;
+        bottom: auto;
+        padding: 0 12px;
+    }
+
+    .btn {
+        padding: 6px 12px;
+        font-size: 0.72rem;
+    }
+}

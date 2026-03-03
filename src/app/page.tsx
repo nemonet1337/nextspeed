@@ -1,23 +1,25 @@
 'use client';
 
 import { useEcu } from '../hooks/useEcu';
+import { useTranslation } from '../hooks/useTranslation';
 import Gauge from '../components/Dashboard/Gauge';
 import InfoPanel from '../components/Dashboard/InfoPanel';
 import styles from './page.module.css';
 
 export default function DashboardPage() {
   const { status, sensorData } = useEcu();
+  const { t } = useTranslation();
   const d = sensorData;
   const isConnected = status === 'connected';
 
   return (
     <div className={styles.dashboard}>
       <section className={styles.heroSection}>
-        <h1 className={styles.pageTitle}>ダッシュボード</h1>
+        <h1 className={styles.pageTitle}>{t('dashboard.title')}</h1>
         <p className={styles.pageDesc}>
           {isConnected
-            ? 'ECU に接続中 — リアルタイムでセンサーデータを表示しています'
-            : 'ECU に接続してリアルタイムデータを表示します。右上の接続ボタンから USB で接続してください。'}
+            ? t('dashboard.descConnected')
+            : t('dashboard.descDisconnected')}
         </p>
       </section>
 
@@ -25,7 +27,7 @@ export default function DashboardPage() {
       <section className={styles.gaugeSection}>
         <div className={styles.gaugeGrid}>
           <Gauge
-            label="RPM"
+            label={t('dashboard.gauge.rpm')}
             value={d.rpm}
             min={0}
             max={9000}
@@ -37,7 +39,7 @@ export default function DashboardPage() {
             size={180}
           />
           <Gauge
-            label="水温"
+            label={t('dashboard.gauge.coolantTemp')}
             value={d.coolantTemp}
             min={-40}
             max={140}
@@ -49,7 +51,7 @@ export default function DashboardPage() {
             size={140}
           />
           <Gauge
-            label="吸気温度"
+            label={t('dashboard.gauge.iat')}
             value={d.iat}
             min={-40}
             max={80}
@@ -61,7 +63,7 @@ export default function DashboardPage() {
             size={140}
           />
           <Gauge
-            label="TPS"
+            label={t('dashboard.gauge.tps')}
             value={d.tps}
             min={0}
             max={100}
@@ -71,7 +73,7 @@ export default function DashboardPage() {
             size={140}
           />
           <Gauge
-            label="MAP"
+            label={t('dashboard.gauge.map')}
             value={d.map}
             min={0}
             max={300}
@@ -81,7 +83,7 @@ export default function DashboardPage() {
             size={140}
           />
           <Gauge
-            label="空燃比"
+            label={t('dashboard.gauge.afr')}
             value={d.afr}
             min={10}
             max={20}
@@ -93,7 +95,7 @@ export default function DashboardPage() {
             size={140}
           />
           <Gauge
-            label="バッテリー"
+            label={t('dashboard.gauge.battery')}
             value={d.batteryVoltage}
             min={10}
             max={16}
@@ -105,7 +107,7 @@ export default function DashboardPage() {
             size={140}
           />
           <Gauge
-            label="点火進角"
+            label={t('dashboard.gauge.advance')}
             value={d.advance}
             min={-10}
             max={50}
@@ -120,61 +122,61 @@ export default function DashboardPage() {
       {/* 詳細パネル群 */}
       <section className={styles.panelSection}>
         <InfoPanel
-          title="燃料系"
+          title={t('dashboard.panel.fuel')}
           items={[
-            { label: 'パルス幅 1', value: d.pulseWidth1, unit: 'ms' },
-            { label: 'パルス幅 2', value: d.pulseWidth2, unit: 'ms' },
-            { label: 'デューティ', value: d.dutyCycle, unit: '%' },
-            { label: '目標 AFR', value: d.afrTarget, unit: 'A/F' },
-            { label: '燃圧', value: d.fuelPressure, unit: 'kPa' },
-            { label: 'EGO 補正', value: d.egoCorrection, unit: '%' },
-            { label: 'ガンマ補正', value: d.gammaEnrich, unit: '%' },
-            { label: '現在 VE', value: d.veCurr, unit: '%' },
+            { label: t('dashboard.panel.pulseWidth1'), value: d.pulseWidth1, unit: 'ms' },
+            { label: t('dashboard.panel.pulseWidth2'), value: d.pulseWidth2, unit: 'ms' },
+            { label: t('dashboard.panel.dutyCycle'), value: d.dutyCycle, unit: '%' },
+            { label: t('dashboard.panel.afrTarget'), value: d.afrTarget, unit: 'A/F' },
+            { label: t('dashboard.panel.fuelPressure'), value: d.fuelPressure, unit: 'kPa' },
+            { label: t('dashboard.panel.egoCorrection'), value: d.egoCorrection, unit: '%' },
+            { label: t('dashboard.panel.gammaEnrich'), value: d.gammaEnrich, unit: '%' },
+            { label: t('dashboard.panel.veCurr'), value: d.veCurr, unit: '%' },
           ]}
         />
 
         <InfoPanel
-          title="点火系"
+          title={t('dashboard.panel.ignition')}
           items={[
-            { label: '進角', value: d.advance, unit: '°' },
-            { label: 'ドウェル', value: d.dwell, unit: 'ms' },
-            { label: 'トリガーエラー', value: d.triggerErrors, status: d.triggerErrors > 0 ? 'danger' : 'normal' },
-            { label: '同期', value: d.syncStatus ? 'OK' : 'NG', status: d.syncStatus ? 'active' : 'danger' },
+            { label: t('dashboard.panel.advance'), value: d.advance, unit: '°' },
+            { label: t('dashboard.panel.dwell'), value: d.dwell, unit: 'ms' },
+            { label: t('dashboard.panel.triggerErrors'), value: d.triggerErrors, status: d.triggerErrors > 0 ? 'danger' : 'normal' },
+            { label: t('dashboard.panel.sync'), value: d.syncStatus ? t('dashboard.panel.syncOk') : t('dashboard.panel.syncNg'), status: d.syncStatus ? 'active' : 'danger' },
           ]}
         />
 
         <InfoPanel
-          title="油温・油圧"
+          title={t('dashboard.panel.oilTempPressure')}
           items={[
-            { label: '油温', value: d.oilTemp, unit: '°C', status: d.oilTemp > 120 ? 'danger' : d.oilTemp > 100 ? 'warn' : 'normal' },
-            { label: '油圧', value: d.oilPressure, unit: 'kPa', status: d.oilPressure < 100 && d.rpm > 1000 ? 'danger' : 'normal' },
+            { label: t('dashboard.panel.oilTemp'), value: d.oilTemp, unit: '°C', status: d.oilTemp > 120 ? 'danger' : d.oilTemp > 100 ? 'warn' : 'normal' },
+            { label: t('dashboard.panel.oilPressure'), value: d.oilPressure, unit: 'kPa', status: d.oilPressure < 100 && d.rpm > 1000 ? 'danger' : 'normal' },
           ]}
         />
 
         <InfoPanel
-          title="ブースト"
+          title={t('dashboard.panel.boost')}
           items={[
-            { label: '目標', value: d.boostTarget, unit: 'kPa' },
-            { label: 'デューティ', value: d.boostDuty, unit: '%' },
+            { label: t('dashboard.panel.boostTarget'), value: d.boostTarget, unit: 'kPa' },
+            { label: t('dashboard.panel.boostDuty'), value: d.boostDuty, unit: '%' },
           ]}
         />
 
         <InfoPanel
-          title="アイドル"
+          title={t('dashboard.panel.idle')}
           items={[
-            { label: '目標 RPM', value: d.idleTarget },
-            { label: 'IAC 位置', value: d.iacPosition, unit: '%' },
+            { label: t('dashboard.panel.idleTarget'), value: d.idleTarget },
+            { label: t('dashboard.panel.iacPosition'), value: d.iacPosition, unit: '%' },
           ]}
         />
 
         <InfoPanel
-          title="その他"
+          title={t('dashboard.panel.misc')}
           items={[
-            { label: 'クランク角', value: d.crankAngle, unit: '°' },
-            { label: 'ファン', value: d.fanOn ? 'ON' : 'OFF', status: d.fanOn ? 'active' : 'normal' },
+            { label: t('dashboard.panel.crankAngle'), value: d.crankAngle, unit: '°' },
+            { label: t('dashboard.panel.fan'), value: d.fanOn ? t('common.on') : t('common.off'), status: d.fanOn ? 'active' : 'normal' },
           ]}
         />
       </section>
-    </div >
+    </div>
   );
 }

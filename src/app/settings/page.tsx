@@ -1,6 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useTranslation } from '../../hooks/useTranslation';
+import { useLanguage } from '../../contexts/LanguageContext';
+import type { Locale } from '../../i18n';
+import type { EcuType } from '../../lib/types/ecu';
 import styles from './page.module.css';
 
 interface AppSettings {
@@ -22,6 +26,8 @@ const DEFAULT_SETTINGS: AppSettings = {
 export default function SettingsPage() {
     const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS);
     const [saved, setSaved] = useState(false);
+    const { t } = useTranslation();
+    const { locale, setLocale, ecuPreference, setEcuPreference } = useLanguage();
 
     useEffect(() => {
         const stored = localStorage.getItem('nextspeed_settings');
@@ -48,34 +54,56 @@ export default function SettingsPage() {
     return (
         <div className={styles.page}>
             <section className={styles.headerSection}>
-                <h1 className={styles.pageTitle}>設定</h1>
+                <h1 className={styles.pageTitle}>{t('settings.title')}</h1>
                 <p className={styles.pageDesc}>
-                    接続設定、表示設定、ECU パラメータの詳細設定を行います。
+                    {t('settings.desc')}
                 </p>
                 <div className={styles.actions}>
                     <button className={styles.saveBtn} onClick={handleSave}>
-                        {saved ? '✓ 保存しました' : '💾 設定を保存'}
+                        {saved ? t('settings.saved') : t('settings.save')}
                     </button>
                 </div>
             </section>
 
             <div className={styles.grid}>
                 <section className={styles.card}>
-                    <h2 className={styles.cardTitle}>アプリケーション設定</h2>
+                    <h2 className={styles.cardTitle}>{t('settings.appSettings')}</h2>
 
                     <div className={styles.formGroup}>
-                        <label>単位系</label>
+                        <label>{t('settings.language')}</label>
                         <select
-                            value={settings.units}
-                            onChange={(e) => handleChange('units', e.target.value)}
+                            value={locale}
+                            onChange={(e) => setLocale(e.target.value as Locale)}
                         >
-                            <option value="metric">メートル法 (℃, kPa)</option>
-                            <option value="imperial">ヤード・ポンド法 (℉, PSI)</option>
+                            <option value="ja">{t('settings.languageJa')}</option>
+                            <option value="en">{t('settings.languageEn')}</option>
                         </select>
                     </div>
 
                     <div className={styles.formGroup}>
-                        <label>デフォルトボーレート</label>
+                        <label>{t('setup.ecuType')}</label>
+                        <select
+                            value={ecuPreference}
+                            onChange={(e) => setEcuPreference(e.target.value as EcuType)}
+                        >
+                            <option value="rusefi">RusEFI</option>
+                            <option value="speeduino">Speeduino</option>
+                        </select>
+                    </div>
+
+                    <div className={styles.formGroup}>
+                        <label>{t('settings.units')}</label>
+                        <select
+                            value={settings.units}
+                            onChange={(e) => handleChange('units', e.target.value)}
+                        >
+                            <option value="metric">{t('settings.metric')}</option>
+                            <option value="imperial">{t('settings.imperial')}</option>
+                        </select>
+                    </div>
+
+                    <div className={styles.formGroup}>
+                        <label>{t('settings.baudRate')}</label>
                         <select
                             value={settings.baudRate}
                             onChange={(e) => handleChange('baudRate', Number(e.target.value))}
@@ -90,11 +118,11 @@ export default function SettingsPage() {
                 </section>
 
                 <section className={styles.card}>
-                    <h2 className={styles.cardTitle}>ECU 基本設定 (デモ)</h2>
-                    <p className={styles.cardSub}>※ 実際のECUへの書き込みは未実装です</p>
+                    <h2 className={styles.cardTitle}>{t('settings.ecuSettings')}</h2>
+                    <p className={styles.cardSub}>{t('settings.ecuSettingsNote')}</p>
 
                     <div className={styles.formGroup}>
-                        <label>排気量 (cc)</label>
+                        <label>{t('settings.displacement')}</label>
                         <input
                             type="number"
                             step="100"
@@ -104,7 +132,7 @@ export default function SettingsPage() {
                     </div>
 
                     <div className={styles.formGroup}>
-                        <label>気筒数</label>
+                        <label>{t('settings.cylinders')}</label>
                         <input
                             type="number"
                             min="1"
@@ -115,7 +143,7 @@ export default function SettingsPage() {
                     </div>
 
                     <div className={styles.formGroup}>
-                        <label>インジェクターサイズ (cc/min)</label>
+                        <label>{t('settings.injectorSize')}</label>
                         <input
                             type="number"
                             step="50"

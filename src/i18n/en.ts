@@ -1,0 +1,150 @@
+import type { Translations } from './ja';
+
+export const en: Translations = {
+    setup: {
+        title: 'NextSpeed Setup',
+        subtitle: 'Select your language and ECU type to get started',
+        language: 'Language',
+        ecuType: 'ECU Type',
+        start: 'Start',
+    },
+
+    nav: {
+        dashboard: 'Dashboard',
+        tuning: 'Tuning',
+        logs: 'Data Logs',
+        settings: 'Settings',
+    },
+
+    header: {
+        usbConnect: 'USB Connect',
+        connecting: 'Connecting...',
+        disconnect: 'Disconnect',
+        portDialog: {
+            title: 'Select Serial Port',
+            port: 'Port',
+            baudRate: 'Baud Rate',
+            cancel: 'Cancel',
+            connect: 'Connect',
+            noPorts: 'No available ports found',
+        },
+    },
+
+    status: {
+        disconnected: 'Disconnected',
+        connecting: 'Connecting...',
+        connected: 'Connected',
+        error: 'Error',
+    },
+
+    dashboard: {
+        title: 'Dashboard',
+        descConnected: 'Connected to ECU — Displaying real-time sensor data',
+        descDisconnected: 'Connect to ECU to view real-time data. Use the connect button in the top-right corner.',
+        gauge: {
+            rpm: 'RPM',
+            coolantTemp: 'Coolant',
+            iat: 'IAT',
+            tps: 'TPS',
+            map: 'MAP',
+            afr: 'AFR',
+            battery: 'Battery',
+            advance: 'Ign. Adv.',
+        },
+        panel: {
+            fuel: 'Fuel System',
+            pulseWidth1: 'Pulse Width 1',
+            pulseWidth2: 'Pulse Width 2',
+            dutyCycle: 'Duty Cycle',
+            afrTarget: 'Target AFR',
+            fuelPressure: 'Fuel Pressure',
+            egoCorrection: 'EGO Correction',
+            gammaEnrich: 'Gamma Enrich.',
+            veCurr: 'Current VE',
+
+            ignition: 'Ignition',
+            advance: 'Advance',
+            dwell: 'Dwell',
+            triggerErrors: 'Trigger Errors',
+            sync: 'Sync',
+            syncOk: 'OK',
+            syncNg: 'NG',
+
+            oilTempPressure: 'Oil Temp & Pressure',
+            oilTemp: 'Oil Temp',
+            oilPressure: 'Oil Pressure',
+
+            boost: 'Boost',
+            boostTarget: 'Target',
+            boostDuty: 'Duty',
+
+            idle: 'Idle',
+            idleTarget: 'Target RPM',
+            iacPosition: 'IAC Position',
+
+            misc: 'Misc',
+            crankAngle: 'Crank Angle',
+            fan: 'Fan',
+        },
+    },
+
+    tuning: {
+        title: 'Tuning',
+        desc: 'View and edit VE map and ignition map. Click a cell to modify the value.',
+        veTab: 'VE Map (Fuel)',
+        ignTab: 'Ignition Map',
+        veTableName: 'VE Table (Volumetric Efficiency)',
+        ignTableName: 'Ignition Map (Ignition Advance)',
+        burn: '🔥 Burn to ECU',
+        read: '📥 Read from ECU',
+        saveFile: '💾 Save to File',
+        loadFile: '📂 Load from File',
+        burnSuccess: 'Burn request sent to ECU. (Demo)',
+        readSuccess: 'Read request sent to ECU. (Demo)',
+        commError: 'ECU communication error: ',
+        saveSuccess: 'Tuning data saved.',
+        saveFailed: 'Save failed: ',
+        loadSuccess: 'Tuning data loaded.',
+        loadFailed: 'Load failed: ',
+        electronOnly: 'File save is only supported in Electron environment.',
+        electronOnlyLoad: 'File load is only supported in Electron environment.',
+    },
+
+    logs: {
+        title: 'Data Logs',
+        desc: 'Record real-time data from ECU and visualize it with graphs.',
+        resume: '▶ Resume',
+        pause: '⏸ Pause',
+        clear: '🗑 Clear',
+        export: '💾 Export CSV',
+        waiting: 'Waiting for data...',
+        connectPrompt: 'Connect to ECU to start receiving real-time data.',
+        exportSuccess: 'Log saved as CSV.',
+        exportFailed: 'Save failed.',
+    },
+
+    settings: {
+        title: 'Settings',
+        desc: 'Configure connection settings, display options, and ECU parameters.',
+        saved: '✓ Saved',
+        save: '💾 Save Settings',
+        appSettings: 'Application Settings',
+        language: 'Language',
+        languageJa: '日本語',
+        languageEn: 'English',
+        units: 'Unit System',
+        metric: 'Metric (℃, kPa)',
+        imperial: 'Imperial (℉, PSI)',
+        baudRate: 'Default Baud Rate',
+        ecuSettings: 'ECU Base Settings (Demo)',
+        ecuSettingsNote: '* Writing to actual ECU is not yet implemented',
+        displacement: 'Displacement (cc)',
+        cylinders: 'Cylinders',
+        injectorSize: 'Injector Size (cc/min)',
+    },
+
+    common: {
+        on: 'ON',
+        off: 'OFF',
+    },
+};

@@ -3,6 +3,7 @@
 import { useState, useCallback } from 'react';
 import TuningTable from '../../components/Tuning/TuningTable';
 import { getEcuManager } from '../../lib/connection/ecu-manager';
+import { useTranslation } from '../../hooks/useTranslation';
 import styles from './page.module.css';
 
 // サンプルVEマップ
@@ -33,6 +34,7 @@ export default function TuningPage() {
     const [activeTable, setActiveTable] = useState<TableId>('ve');
     const [veData, setVeData] = useState(generateVeMap);
     const [ignData, setIgnData] = useState(generateIgnMap);
+    const { t } = useTranslation();
 
     const handleVeChange = useCallback((row: number, col: number, value: number) => {
         setVeData((prev) => {
@@ -54,28 +56,27 @@ export default function TuningPage() {
 
     const handleBurn = async () => {
         try {
-            // ダミーのコマンド送信 (実際のマップ書き込みはページ単位の複雑なプロトコルが必要)
             const encoder = new TextEncoder();
-            await getEcuManager().write(encoder.encode('W')); // 書き込みコマンド想定
-            alert('ECUへ書き込み要求を送信しました。(デモ)');
+            await getEcuManager().write(encoder.encode('W'));
+            alert(t('tuning.burnSuccess'));
         } catch (e) {
-            alert('ECUとの通信エラー: ' + e);
+            alert(t('tuning.commError') + e);
         }
     };
 
     const handleRead = async () => {
         try {
             const encoder = new TextEncoder();
-            await getEcuManager().write(encoder.encode('R')); // 読み出しコマンド想定
-            alert('ECUへ読み込み要求を送信しました。(デモ)');
+            await getEcuManager().write(encoder.encode('R'));
+            alert(t('tuning.readSuccess'));
         } catch (e) {
-            alert('ECUとの通信エラー: ' + e);
+            alert(t('tuning.commError') + e);
         }
     };
 
     const handleSaveFile = async () => {
         if (!isElectron) {
-            alert('ファイル保存はElectron環境でのみサポートされています。');
+            alert(t('tuning.electronOnly'));
             return;
         }
 
@@ -90,16 +91,16 @@ export default function TuningPage() {
                 'nextspeed_tune.json'
             );
             if (success) {
-                alert('チューニングデータを保存しました。');
+                alert(t('tuning.saveSuccess'));
             }
         } catch (e) {
-            alert('保存に失敗しました: ' + e);
+            alert(t('tuning.saveFailed') + e);
         }
     };
 
     const handleLoadFile = async () => {
         if (!isElectron) {
-            alert('ファイル読み込みはElectron環境でのみサポートされています。');
+            alert(t('tuning.electronOnlyLoad'));
             return;
         }
 
@@ -113,19 +114,19 @@ export default function TuningPage() {
                 if (parsed.ignMap && Array.isArray(parsed.ignMap)) {
                     setIgnData(parsed.ignMap);
                 }
-                alert('チューニングデータを読み込みました。');
+                alert(t('tuning.loadSuccess'));
             }
         } catch (e) {
-            alert('読み込みに失敗しました: ' + e);
+            alert(t('tuning.loadFailed') + e);
         }
     };
 
     return (
         <div className={styles.tuning}>
             <section className={styles.heroSection}>
-                <h1 className={styles.pageTitle}>チューニング</h1>
+                <h1 className={styles.pageTitle}>{t('tuning.title')}</h1>
                 <p className={styles.pageDesc}>
-                    VE マップ・点火マップの閲覧と編集を行います。セルをクリックして値を変更できます。
+                    {t('tuning.desc')}
                 </p>
             </section>
 
@@ -135,20 +136,20 @@ export default function TuningPage() {
                     className={`${styles.tab} ${activeTable === 've' ? styles.activeTab : ''}`}
                     onClick={() => setActiveTable('ve')}
                 >
-                    VE マップ (燃料)
+                    {t('tuning.veTab')}
                 </button>
                 <button
                     className={`${styles.tab} ${activeTable === 'ign' ? styles.activeTab : ''}`}
                     onClick={() => setActiveTable('ign')}
                 >
-                    点火マップ
+                    {t('tuning.ignTab')}
                 </button>
             </div>
 
             {/* テーブル表示 */}
             {activeTable === 've' && (
                 <TuningTable
-                    name="VE テーブル (Volumetric Efficiency)"
+                    name={t('tuning.veTableName')}
                     xBins={defaultRpmBins}
                     yBins={defaultMapBins}
                     xLabel="RPM"
@@ -163,7 +164,7 @@ export default function TuningPage() {
 
             {activeTable === 'ign' && (
                 <TuningTable
-                    name="点火マップ (Ignition Advance)"
+                    name={t('tuning.ignTableName')}
                     xBins={defaultRpmBins}
                     yBins={defaultMapBins}
                     xLabel="RPM"
@@ -179,16 +180,16 @@ export default function TuningPage() {
             {/* 操作ボタン */}
             <div className={styles.actions}>
                 <button className={`${styles.actionBtn} ${styles.burnBtn}`} onClick={handleBurn}>
-                    🔥 ECU に書き込み (Burn)
+                    {t('tuning.burn')}
                 </button>
                 <button className={styles.actionBtn} onClick={handleRead}>
-                    📥 ECU から読み込み
+                    {t('tuning.read')}
                 </button>
                 <button className={styles.actionBtn} onClick={handleSaveFile}>
-                    💾 ファイルに保存
+                    {t('tuning.saveFile')}
                 </button>
                 <button className={styles.actionBtn} onClick={handleLoadFile}>
-                    📂 ファイルから読み込み
+                    {t('tuning.loadFile')}
                 </button>
             </div>
         </div>

@@ -2,18 +2,12 @@
 
 import styles from './StatusIndicator.module.css';
 import type { ConnectionStatus, EcuType } from '../../lib/types/ecu';
+import { useTranslation } from '../../hooks/useTranslation';
 
 interface StatusIndicatorProps {
     status: ConnectionStatus;
     ecuType: EcuType;
 }
-
-const statusLabels: Record<ConnectionStatus, string> = {
-    disconnected: '未接続',
-    connecting: '接続中...',
-    connected: '接続済み',
-    error: 'エラー',
-};
 
 const ecuLabels: Record<EcuType, string> = {
     speeduino: 'Speeduino',
@@ -22,6 +16,15 @@ const ecuLabels: Record<EcuType, string> = {
 };
 
 export default function StatusIndicator({ status, ecuType }: StatusIndicatorProps) {
+    const { t } = useTranslation();
+
+    const statusLabels: Record<ConnectionStatus, string> = {
+        disconnected: t('status.disconnected'),
+        connecting: t('status.connecting'),
+        connected: t('status.connected'),
+        error: t('status.error'),
+    };
+
     return (
         <div className={styles.statusBar}>
             <div className={`${styles.dot} ${styles[status]}`} />

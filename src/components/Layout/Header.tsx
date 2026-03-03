@@ -2,11 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import { useEcu } from '../../hooks/useEcu';
+import { useTranslation } from '../../hooks/useTranslation';
 import StatusIndicator from '../Dashboard/StatusIndicator';
 import styles from './Header.module.css';
 
 export default function Header() {
     const { status, ecuType, ports, refreshPorts, connectSerial, disconnect } = useEcu();
+    const { t } = useTranslation();
     const [showPortDialog, setShowPortDialog] = useState(false);
     const [selectedPort, setSelectedPort] = useState('');
     const [baudRate, setBaudRate] = useState(115200);
@@ -44,19 +46,19 @@ export default function Header() {
                             onClick={handleSerialClick}
                         >
                             <span className={styles.btnIcon}>🔌</span>
-                            USB 接続
+                            {t('header.usbConnect')}
                         </button>
                     </>
                 ) : status === 'connecting' ? (
                     <button className={styles.btn} disabled>
-                        接続中...
+                        {t('header.connecting')}
                     </button>
                 ) : (
                     <button
                         className={`${styles.btn} ${styles.danger}`}
                         onClick={() => disconnect()}
                     >
-                        切断
+                        {t('header.disconnect')}
                     </button>
                 )}
             </div>
@@ -65,14 +67,14 @@ export default function Header() {
             {showPortDialog && (
                 <div className={styles.dialogOverlay} onClick={() => setShowPortDialog(false)}>
                     <div className={styles.dialog} onClick={(e) => e.stopPropagation()}>
-                        <h3>シリアルポート選択</h3>
+                        <h3>{t('header.portDialog.title')}</h3>
                         <div className={styles.dialogBody}>
                             {ports.length === 0 ? (
-                                <p className={styles.noPorts}>利用可能なポートが見つかりません</p>
+                                <p className={styles.noPorts}>{t('header.portDialog.noPorts')}</p>
                             ) : (
                                 <>
                                     <label className={styles.label}>
-                                        ポート
+                                        {t('header.portDialog.port')}
                                         <select
                                             className={styles.select}
                                             value={selectedPort}
@@ -86,7 +88,7 @@ export default function Header() {
                                         </select>
                                     </label>
                                     <label className={styles.label}>
-                                        ボーレート
+                                        {t('header.portDialog.baudRate')}
                                         <select
                                             className={styles.select}
                                             value={baudRate}
@@ -105,14 +107,14 @@ export default function Header() {
                                 className={`${styles.btn} ${styles.secondary}`}
                                 onClick={() => setShowPortDialog(false)}
                             >
-                                キャンセル
+                                {t('header.portDialog.cancel')}
                             </button>
                             <button
                                 className={`${styles.btn} ${styles.primary}`}
                                 onClick={handleConnect}
                                 disabled={!selectedPort || ports.length === 0}
                             >
-                                接続
+                                {t('header.portDialog.connect')}
                             </button>
                         </div>
                     </div>

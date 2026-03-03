@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
-import Sidebar from '../components/Layout/Sidebar';
-import Header from '../components/Layout/Header';
+import { LanguageProvider } from '../contexts/LanguageContext';
+import AppShell from '../components/Layout/AppShell';
 
 export const metadata: Metadata = {
   title: 'NextSpeed – ECU Tuning Tool',
@@ -14,22 +14,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ja">
+    <html lang="ja" suppressHydrationWarning>
       <body>
-        <Sidebar />
-        <Header />
-        <main
-          style={{
-            marginLeft: 'var(--sidebar-width)',
-            marginTop: 'var(--header-height)',
-            padding: '24px',
-            minHeight: 'calc(100vh - var(--header-height))',
-            position: 'relative',
-            zIndex: 1,
-          }}
-        >
-          {children}
-        </main>
+        <LanguageProvider>
+          <AppShell>{children}</AppShell>
+        </LanguageProvider>
       </body>
     </html>
   );

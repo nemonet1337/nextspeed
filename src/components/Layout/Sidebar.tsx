@@ -2,17 +2,19 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useTranslation } from '../../hooks/useTranslation';
 import styles from './Sidebar.module.css';
-
-const navItems = [
-    { href: '/', label: 'ダッシュボード', icon: '⚡' },
-    { href: '/tuning', label: 'チューニング', icon: '🔧' },
-    { href: '/logs', label: 'データログ', icon: '📊' },
-    { href: '/settings', label: '設定', icon: '⚙️' },
-];
 
 export default function Sidebar() {
     const pathname = usePathname();
+    const { t } = useTranslation();
+
+    const navItems = [
+        { href: '/', label: t('nav.dashboard'), icon: '⚡' },
+        { href: '/tuning', label: t('nav.tuning'), icon: '🔧' },
+        { href: '/logs', label: t('nav.logs'), icon: '📊' },
+        { href: '/settings', label: t('nav.settings'), icon: '⚙️' },
+    ];
 
     return (
         <aside className={styles.sidebar}>

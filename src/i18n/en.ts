@@ -58,6 +58,7 @@ export const en: Translations = {
             afr: 'AFR',
             battery: 'Battery',
             advance: 'Ign. Adv.',
+            vehicleSpeed: 'Speed',
         },
         panel: {
             fuel: 'Fuel System',

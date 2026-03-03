@@ -3,21 +3,26 @@
 import { useEffect, useRef } from 'react';
 import styles from './Gauge.module.css';
 
+/** Canvas では CSS variable が使えないため直接カラーを定義 */
+const COLOR_MAP: Record<string, string> = {
+    cyan: '#00d2ff',
+    orange: '#f5a623',
+    green: '#4cd964',
+    red: '#ff3b30',
+    purple: '#9b59b6',
+    yellow: '#ffd60a',
+};
+
 interface GaugeProps {
     label: string;
     value: number;
     min: number;
     max: number;
     unit: string;
-    /** ゲージの色テーマ */
     color?: 'cyan' | 'orange' | 'green' | 'red' | 'purple' | 'yellow';
-    /** 警告しきい値 */
     warnThreshold?: number;
-    /** 危険しきい値 */
     dangerThreshold?: number;
-    /** 小数点以下の桁数 */
     decimals?: number;
-    /** サイズ (px) */
     size?: number;
 }
 
@@ -37,9 +42,15 @@ export default function Gauge({
     const animatedValue = useRef(min);
     const frameRef = useRef<number>(0);
 
-    // 値のクランプ
-    const clampedValue = Math.max(min, Math.min(max, value));
+    // ターゲット値を ref で管理（アニメーションループから常に最新値を参照）
+    const targetRef = useRef(Math.max(min, Math.min(max, value)));
+    targetRef.current = Math.max(min, Math.min(max, value));
 
+    // 描画パラメータも ref 化
+    const paramsRef = useRef({ min, max, size, color, warnThreshold, dangerThreshold, decimals, unit });
+    paramsRef.current = { min, max, size, color, warnThreshold, dangerThreshold, decimals, unit };
+
+    // Canvas 初期化 + 常時アニメーションループ
     useEffect(() => {
         const canvas = canvasRef.current;
         if (!canvas) return;
@@ -50,22 +61,28 @@ export default function Gauge({
         const dpr = window.devicePixelRatio || 1;
         canvas.width = size * dpr;
         canvas.height = size * dpr;
-        ctx.scale(dpr, dpr);
 
-        const cx = size / 2;
-        const cy = size / 2;
-        const radius = size / 2 - 12;
+        let running = true;
 
-        // アニメーション
         const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 
         const draw = () => {
-            animatedValue.current = lerp(animatedValue.current, clampedValue, 0.15);
-            const pct = (animatedValue.current - min) / (max - min);
+            if (!running) return;
 
-            ctx.clearRect(0, 0, size, size);
+            const p = paramsRef.current;
+            const target = targetRef.current;
 
-            // 開始角・終了角 (225° → -45°)
+            animatedValue.current = lerp(animatedValue.current, target, 0.15);
+
+            const pct = (animatedValue.current - p.min) / (p.max - p.min);
+
+            ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+            ctx.clearRect(0, 0, p.size, p.size);
+
+            const cx = p.size / 2;
+            const cy = p.size / 2;
+            const radius = p.size / 2 - 12;
+
             const startAngle = (225 * Math.PI) / 180;
             const endAngle = (-45 * Math.PI) / 180;
             const totalArc = (270 * Math.PI) / 180;
@@ -78,23 +95,19 @@ export default function Gauge({
             ctx.lineCap = 'round';
             ctx.stroke();
 
-            // 値アーク
+            // 値アーク — 直接 HEX カラーを使う
             const valueAngle = startAngle + totalArc * pct;
-            let arcColor = `var(--gauge-${color})`;
+            let arcColor = COLOR_MAP[p.color] || COLOR_MAP.cyan;
 
-            if (dangerThreshold !== undefined && animatedValue.current >= dangerThreshold) {
-                arcColor = 'var(--gauge-red)';
-            } else if (warnThreshold !== undefined && animatedValue.current >= warnThreshold) {
-                arcColor = 'var(--gauge-orange)';
+            if (p.dangerThreshold !== undefined && animatedValue.current >= p.dangerThreshold) {
+                arcColor = COLOR_MAP.red;
+            } else if (p.warnThreshold !== undefined && animatedValue.current >= p.warnThreshold) {
+                arcColor = COLOR_MAP.orange;
             }
-
-            const gradient = ctx.createLinearGradient(0, size, size, 0);
-            gradient.addColorStop(0, arcColor);
-            gradient.addColorStop(1, arcColor);
 
             ctx.beginPath();
             ctx.arc(cx, cy, radius, startAngle, valueAngle, false);
-            ctx.strokeStyle = gradient;
+            ctx.strokeStyle = arcColor;
             ctx.lineWidth = 8;
             ctx.lineCap = 'round';
             ctx.stroke();
@@ -113,27 +126,27 @@ export default function Gauge({
 
             // 値テキスト
             ctx.fillStyle = '#ffffff';
-            ctx.font = `bold ${size * 0.22}px "Inter", "Segoe UI", sans-serif`;
+            ctx.font = `bold ${p.size * 0.22}px "Inter", "Segoe UI", sans-serif`;
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
-            ctx.fillText(animatedValue.current.toFixed(decimals), cx, cy - 4);
+            ctx.fillText(animatedValue.current.toFixed(p.decimals), cx, cy - 4);
 
             // 単位テキスト
             ctx.fillStyle = 'rgba(255,255,255,0.5)';
-            ctx.font = `${size * 0.09}px "Inter", "Segoe UI", sans-serif`;
-            ctx.fillText(unit, cx, cy + size * 0.16);
+            ctx.font = `${p.size * 0.09}px "Inter", "Segoe UI", sans-serif`;
+            ctx.fillText(p.unit, cx, cy + p.size * 0.16);
 
-            if (Math.abs(animatedValue.current - clampedValue) > 0.01) {
-                frameRef.current = requestAnimationFrame(draw);
-            }
+            frameRef.current = requestAnimationFrame(draw);
         };
 
         frameRef.current = requestAnimationFrame(draw);
 
         return () => {
+            running = false;
             cancelAnimationFrame(frameRef.current);
         };
-    }, [clampedValue, min, max, size, color, warnThreshold, dangerThreshold, decimals, unit]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [size]);
 
     return (
         <div className={styles.gaugeWrapper} style={{ width: size, height: size + 28 }}>

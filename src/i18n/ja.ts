@@ -53,6 +53,7 @@ export interface Translations {
             afr: string;
             battery: string;
             advance: string;
+            vehicleSpeed: string;
         };
         panel: {
             fuel: string;
@@ -206,6 +207,7 @@ export const ja: Translations = {
             afr: '空燃比',
             battery: 'バッテリー',
             advance: '点火進角',
+            vehicleSpeed: '車速',
         },
         panel: {
             fuel: '燃料系',

@@ -9,7 +9,8 @@
     "start": "next start",
     "lint": "eslint",
     "electron:build": "tsc -p tsconfig.electron.json",
-    "electron:dev": "concurrently -k \"cross-env NODE_ENV=development npm run dev\" \"wait-on http://localhost:3000 && npm run electron:build && cross-env NODE_ENV=development electron .\"",
+    "electron:start": "npm run electron:build && cross-env NODE_ENV=development electron .",
+    "electron:dev": "concurrently -k \"cross-env NODE_ENV=development npm run dev\" \"wait-on http://localhost:3000 -t 30000 && npm run electron:start\"",
     "electron:pack": "npm run build && npm run electron:build && electron-builder --dir",
     "electron:dist": "npm run build && npm run electron:build && electron-builder"
   },

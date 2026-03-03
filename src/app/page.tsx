@@ -27,6 +27,18 @@ export default function DashboardPage() {
       <section className={styles.gaugeSection}>
         <div className={styles.gaugeGrid}>
           <Gauge
+            label={t('dashboard.gauge.vehicleSpeed')}
+            value={d.vehicleSpeed}
+            min={0}
+            max={300}
+            unit="km/h"
+            color="green"
+            warnThreshold={200}
+            dangerThreshold={260}
+            decimals={0}
+            size={180}
+          />
+          <Gauge
             label={t('dashboard.gauge.rpm')}
             value={d.rpm}
             min={0}

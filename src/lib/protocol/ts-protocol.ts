@@ -178,6 +178,11 @@ export function parseSpeeduinoRealtimeData(raw: Uint8Array): SensorData {
     data.dutyCycle = 0;
     data.dwell = 0;
 
+    // Vehicle Speed (VSS) — Speeduino拡張バイト (offset 33付近, ファームウェア版で異なる)
+    if (raw.length > 63) {
+        data.vehicleSpeed = view.getUint16(62, true); // km/h として取得
+    }
+
     const statusBits = view.getUint8(1);
     data.syncStatus = (statusBits & 0x01) !== 0; // 仕様に基づくSync
     // data.fanOn は現状の公式Aコマンド内に明確なビットがないため false 固定
@@ -266,6 +271,11 @@ export function parseRusEFIRealtimeData(raw: Uint8Array): SensorData {
     data.iacPosition = 0;
     data.triggerErrors = 0;
     data.fanOn = false;
+
+    // Vehicle Speed (VSS) — RusEFI outputChannels
+    if (raw.length > 54) {
+        data.vehicleSpeed = view.getUint16(53, true) / 100; // vehicleSpeedKph (PACK_MULT = 100)
+    }
 
     data.timestamp = Date.now();
     return data;

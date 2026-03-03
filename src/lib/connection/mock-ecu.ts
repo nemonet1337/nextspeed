@@ -14,6 +14,10 @@ export interface EngineProfile {
     spoolRate: number; // Boost buildup coefficient
     revMultiplier: number; // RPM climb rate coefficient
     shiftDropRpm: number; // RPM drop on shift
+    // ドライブトレイン（車速算出用）
+    gearRatios: number[]; // 1速〜4速のギア比
+    finalDrive: number;   // ファイナルギア比
+    tireCircumference: number; // タイヤ外周 (m)
 }
 
 export const ENGINE_PROFILES: Record<EngineProfileId, EngineProfile> = {
@@ -29,6 +33,9 @@ export const ENGINE_PROFILES: Record<EngineProfileId, EngineProfile> = {
         spoolRate: 0.1, // Laggy turbo
         revMultiplier: 3.0,
         shiftDropRpm: 2500,
+        gearRatios: [3.626, 2.188, 1.541, 1.213],
+        finalDrive: 3.944,
+        tireCircumference: 1.96, // 225/45R17
     },
     v8_na: {
         id: 'v8_na',
@@ -42,6 +49,9 @@ export const ENGINE_PROFILES: Record<EngineProfileId, EngineProfile> = {
         spoolRate: 1.0, // Instant response
         revMultiplier: 2.2,
         shiftDropRpm: 1500,
+        gearRatios: [4.056, 2.353, 1.531, 1.152],
+        finalDrive: 3.73,
+        tireCircumference: 2.13, // 275/40R20
     },
     v6_twinturbo: {
         id: 'v6_twinturbo',
@@ -55,6 +65,9 @@ export const ENGINE_PROFILES: Record<EngineProfileId, EngineProfile> = {
         spoolRate: 0.25, // Quick spooling
         revMultiplier: 2.8,
         shiftDropRpm: 2000,
+        gearRatios: [3.827, 2.360, 1.685, 1.312],
+        finalDrive: 3.692,
+        tireCircumference: 2.04, // 255/40R19
     }
 };
 
@@ -109,6 +122,7 @@ export class MockEcuProvider {
             this.state = 'staging';
             this.stateTicks = 0;
             this.currentGear = 1;
+            this.data.vehicleSpeed = 0;
         }
     }
 
@@ -125,6 +139,16 @@ export class MockEcuProvider {
         this.data.afrTarget = 14.7;
         this.data.advance = 15;
         this.data.syncStatus = true;
+        this.data.vehicleSpeed = 0;
+    }
+
+    /** RPM とギアから車速 (km/h) を算出 */
+    private calcSpeed(rpm: number, gear: number): number {
+        const gearIdx = Math.max(0, Math.min(gear - 1, this.profile.gearRatios.length - 1));
+        const gearRatio = this.profile.gearRatios[gearIdx];
+        // v = (RPM * tireCircumference) / (gearRatio * finalDrive * 60) → m/s → km/h
+        const speedMs = (rpm * this.profile.tireCircumference) / (gearRatio * this.profile.finalDrive * 60);
+        return speedMs * 3.6; // m/s → km/h
     }
 
     private tick() {
@@ -143,8 +167,7 @@ export class MockEcuProvider {
 
                 // RPM fluctuation
                 this.data.rpm = this.lerp(this.data.rpm, targetRpm + (Math.random() * 50 - 25), 0.2);
-
-                // Allow triggering staging after some idle time automatically, or let UI trigger it
+                this.data.vehicleSpeed = 0;
                 break;
 
             case 'staging':
@@ -161,6 +184,7 @@ export class MockEcuProvider {
                 }
 
                 targetAfr = 12.0;
+                this.data.vehicleSpeed = 0; // まだ止まっている
 
                 // Stage for 2 seconds (40 ticks)
                 if (this.stateTicks > 40) {
@@ -176,6 +200,9 @@ export class MockEcuProvider {
                 targetMap = this.profile.maxBoost;
                 targetAfr = 11.5;
 
+                // ローンチ時は少し車速が出始める
+                this.data.vehicleSpeed = this.lerp(this.data.vehicleSpeed, this.calcSpeed(this.data.rpm, 1) * 0.3, 0.3);
+
                 if (this.stateTicks > 5) { // 0.25s
                     this.state = 'accelerating';
                     this.stateTicks = 0;
@@ -190,6 +217,10 @@ export class MockEcuProvider {
                 // Calculate RPM climb based on gear (higher gear = slower revs)
                 const revGain = (this.profile.revMultiplier * 80) / this.currentGear;
                 this.data.rpm += revGain;
+
+                // 車速をRPM・ギアから算出
+                const targetSpeed = this.calcSpeed(this.data.rpm, this.currentGear);
+                this.data.vehicleSpeed = this.lerp(this.data.vehicleSpeed, targetSpeed, 0.3);
 
                 // Advance timing over RPM
                 this.data.advance = 15 + ((this.data.rpm - 3000) / 4000) * 15;
@@ -215,6 +246,9 @@ export class MockEcuProvider {
                 // Drop RPM quickly
                 this.data.rpm = this.lerp(this.data.rpm, this.profile.redlineRpm - this.profile.shiftDropRpm, 0.4);
 
+                // シフト中も車速は維持〜微増（慣性で走り続ける）
+                this.data.vehicleSpeed *= 1.002;
+
                 if (this.stateTicks > 6) { // 300ms shift time
                     this.currentGear++;
                     this.state = 'accelerating';
@@ -230,6 +264,9 @@ export class MockEcuProvider {
                 this.data.advance = 10;
 
                 this.data.rpm -= 30; // Slow decel in gear
+
+                // 車速も減速
+                this.data.vehicleSpeed = this.lerp(this.data.vehicleSpeed, 0, 0.03);
 
                 if (this.data.rpm < this.profile.idleRpm + 500) {
                     this.state = 'idle';

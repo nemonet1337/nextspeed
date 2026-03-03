@@ -62,6 +62,7 @@ export interface SensorData {
     gammaEnrich: number;    // ガンマ補正 (%)
     veCurr: number;         // 現在の VE 値 (%)
     fanOn: boolean;         // ファンステータス
+    vehicleSpeed: number;   // 車速 (km/h) — VSS 経由
 
     // タイムスタンプ
     timestamp: number;
@@ -138,6 +139,7 @@ export function createDefaultSensorData(): SensorData {
         gammaEnrich: 0,
         veCurr: 0,
         fanOn: false,
+        vehicleSpeed: 0,
         timestamp: Date.now(),
     };
 }

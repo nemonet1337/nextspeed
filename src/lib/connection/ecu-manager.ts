@@ -42,13 +42,15 @@ export class EcuConnectionManager {
         this.bluetooth = new BluetoothManager();
         this.buffer = new ResponseBuffer();
 
-        // Serial イベント
-        this.serial.on((type, payload) => {
-            if (type === 'data') {
-                this.onData(payload as Uint8Array);
-            } else if (type === 'status') {
-                this.setStatus(payload as ConnectionStatus);
-            }
+        // Serial イベント (Electron IPC 版)
+        this.serial.onStatus((status: ConnectionStatus) => {
+            this.setStatus(status);
+        });
+        this.serial.onData((data: Uint8Array) => {
+            this.onData(data);
+        });
+        this.serial.onError((error: string) => {
+            this.emit('error', error);
         });
 
         // Bluetooth イベント
@@ -78,10 +80,15 @@ export class EcuConnectionManager {
         this.emit('status', status);
     }
 
-    /** USB/シリアル接続 */
-    async connectSerial(baudRate: number = 115200): Promise<void> {
+    /** 利用可能なシリアルポート一覧を取得 */
+    async listSerialPorts() {
+        return this.serial.listPorts();
+    }
+
+    /** USB/シリアル接続 (ポートパスを指定) */
+    async connectSerial(portPath: string, baudRate: number = 115200): Promise<void> {
         this._connectionType = 'serial';
-        await this.serial.connect(baudRate);
+        await this.serial.connect(portPath, baudRate);
         await this.identify();
         this.startPolling();
     }
@@ -111,8 +118,6 @@ export class EcuConnectionManager {
     private async identify(): Promise<void> {
         try {
             await this.send(buildSignatureCommand());
-            // レスポンスは onData で処理される
-            // 少し待ってバッファに溜まったデータからシグネチャを解析
             await new Promise(resolve => setTimeout(resolve, 500));
             if (this.buffer.length > 0) {
                 const sig = new TextDecoder().decode(this.buffer.consume(this.buffer.length));
@@ -137,8 +142,6 @@ export class EcuConnectionManager {
     private onData(chunk: Uint8Array) {
         this.buffer.append(chunk);
 
-        // リアルタイムデータとしてパース試行
-        // Speeduino: 最低 76 バイト / RusEFI: 最低 100 バイト
         const minLen = this._ecuType === 'rusefi' ? 100 : 76;
 
         if (this.buffer.hasBytes(minLen)) {

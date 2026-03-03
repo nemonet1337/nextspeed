@@ -1,46 +1,32 @@
 /**
- * Web Serial API / Web Bluetooth API のグローバル型宣言
- *
- * TypeScript がブラウザの実験的 API を認識するための宣言
+ * Electron IPC API のグローバル型宣言
  */
 
-// Web Serial API
-interface SerialPortRequestOptions {
-    filters?: SerialPortFilter[];
+export interface SerialPortInfo {
+    path: string;
+    manufacturer: string;
+    vendorId: string;
+    productId: string;
 }
 
-interface SerialPortFilter {
-    usbVendorId?: number;
-    usbProductId?: number;
+export interface ElectronSerialAPI {
+    list: () => Promise<SerialPortInfo[]>;
+    connect: (portPath: string, baudRate: number) => Promise<boolean>;
+    write: (data: number[]) => Promise<boolean>;
+    disconnect: () => Promise<boolean>;
+    onData: (callback: (data: number[]) => void) => void;
+    onStatus: (callback: (status: string) => void) => void;
+    onError: (callback: (error: string) => void) => void;
+    removeAllListeners: () => void;
 }
 
-interface SerialPortOpenOptions {
-    baudRate: number;
-    dataBits?: number;
-    stopBits?: number;
-    parity?: 'none' | 'even' | 'odd';
-    bufferSize?: number;
-    flowControl?: 'none' | 'hardware';
+export interface ElectronAPI {
+    serial: ElectronSerialAPI;
+    isElectron: boolean;
 }
 
-interface SerialPort {
-    readable: ReadableStream<Uint8Array> | null;
-    writable: WritableStream<Uint8Array> | null;
-    open(options: SerialPortOpenOptions): Promise<void>;
-    close(): Promise<void>;
-    getInfo(): SerialPortInfo;
-}
-
-interface SerialPortInfo {
-    usbVendorId?: number;
-    usbProductId?: number;
-}
-
-interface Serial extends EventTarget {
-    requestPort(options?: SerialPortRequestOptions): Promise<SerialPort>;
-    getPorts(): Promise<SerialPort[]>;
-}
-
-interface Navigator {
-    serial: Serial;
+declare global {
+    interface Window {
+        electronAPI?: ElectronAPI;
+    }
 }

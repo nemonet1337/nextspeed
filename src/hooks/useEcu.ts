@@ -5,6 +5,13 @@ import { getEcuManager, type EcuEventType } from '../lib/connection/ecu-manager'
 import type { ConnectionStatus, EcuType, SensorData } from '../lib/types/ecu';
 import { createDefaultSensorData } from '../lib/types/ecu';
 
+interface PortInfo {
+    path: string;
+    manufacturer: string;
+    vendorId: string;
+    productId: string;
+}
+
 /**
  * ECU 接続・データ取得用 React フック
  */
@@ -13,6 +20,7 @@ export function useEcu() {
     const [ecuType, setEcuType] = useState<EcuType>('unknown');
     const [sensorData, setSensorData] = useState<SensorData>(createDefaultSensorData());
     const [error, setError] = useState<string | null>(null);
+    const [ports, setPorts] = useState<PortInfo[]>([]);
     const managerRef = useRef(getEcuManager());
 
     useEffect(() => {
@@ -40,15 +48,27 @@ export function useEcu() {
         return () => { mgr.off(handler); };
     }, []);
 
-    const connectSerial = useCallback(async (baudRate?: number) => {
+    /** シリアルポート一覧の更新 */
+    const refreshPorts = useCallback(async () => {
+        try {
+            const list = await managerRef.current.listSerialPorts();
+            setPorts(list);
+        } catch {
+            setPorts([]);
+        }
+    }, []);
+
+    /** シリアル接続 (ポートパス指定) */
+    const connectSerial = useCallback(async (portPath: string, baudRate: number = 115200) => {
         setError(null);
         try {
-            await managerRef.current.connectSerial(baudRate);
+            await managerRef.current.connectSerial(portPath, baudRate);
         } catch (e) {
             setError(String(e));
         }
     }, []);
 
+    /** Bluetooth 接続 */
     const connectBluetooth = useCallback(async () => {
         setError(null);
         try {
@@ -58,6 +78,7 @@ export function useEcu() {
         }
     }, []);
 
+    /** 切断 */
     const disconnect = useCallback(async () => {
         await managerRef.current.disconnect();
     }, []);
@@ -67,6 +88,8 @@ export function useEcu() {
         ecuType,
         sensorData,
         error,
+        ports,
+        refreshPorts,
         connectSerial,
         connectBluetooth,
         disconnect,

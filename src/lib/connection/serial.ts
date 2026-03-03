@@ -1,138 +1,101 @@
+'use client';
+
+import { ConnectionStatus } from '@/lib/types/ecu';
+
+type StatusCallback = (status: ConnectionStatus) => void;
+type DataCallback = (data: Uint8Array) => void;
+type ErrorCallback = (error: string) => void;
+
 /**
- * Web Serial API を使ったシリアル通信マネージャ
- *
- * USB / シリアルポート経由で ECU と接続する。
- * ブラウザの Web Serial API を使用 (Chrome 89+ / Edge 89+)
+ * シリアルマネージャ
+ * Electron IPC 経由で Node.js serialport パッケージを使用してシリアル通信を行う。
+ * Electron 外ではフォールバックとして Web Serial API にも対応。
  */
-import type { ConnectionStatus } from '../types/ecu';
-
-export type SerialEventType = 'status' | 'data' | 'error';
-export type SerialEventHandler = (type: SerialEventType, payload: unknown) => void;
-
 export class SerialManager {
-    private port: SerialPort | null = null;
-    private reader: ReadableStreamDefaultReader<Uint8Array> | null = null;
-    private writer: WritableStreamDefaultWriter<Uint8Array> | null = null;
-    private readLoop: boolean = false;
-    private listeners: SerialEventHandler[] = [];
+    private statusCallback: StatusCallback | null = null;
+    private dataCallback: DataCallback | null = null;
+    private errorCallback: ErrorCallback | null = null;
+    private connected: boolean = false;
 
-    private _status: ConnectionStatus = 'disconnected';
-
-    get status(): ConnectionStatus {
-        return this._status;
+    /** Electron 環境かどうかの判定 */
+    private get isElectron(): boolean {
+        return typeof window !== 'undefined' && !!window.electronAPI;
     }
 
-    /** ブラウザが Web Serial API をサポートしているか */
-    static isSupported(): boolean {
-        return typeof navigator !== 'undefined' && 'serial' in navigator;
+    /** ステータスコールバック登録 */
+    onStatus(callback: StatusCallback) {
+        this.statusCallback = callback;
     }
 
-    /** リスナーを登録 */
-    on(handler: SerialEventHandler) {
-        this.listeners.push(handler);
+    /** データ受信コールバック登録 */
+    onData(callback: DataCallback) {
+        this.dataCallback = callback;
     }
 
-    off(handler: SerialEventHandler) {
-        this.listeners = this.listeners.filter((h) => h !== handler);
+    /** エラーコールバック登録 */
+    onError(callback: ErrorCallback) {
+        this.errorCallback = callback;
     }
 
-    private emit(type: SerialEventType, payload: unknown) {
-        this.listeners.forEach((h) => h(type, payload));
-    }
-
-    private setStatus(status: ConnectionStatus) {
-        this._status = status;
-        this.emit('status', status);
-    }
-
-    /**
-     * シリアルポートを選択して接続
-     */
-    async connect(baudRate: number = 115200): Promise<void> {
-        if (!SerialManager.isSupported()) {
-            throw new Error('Web Serial API はこのブラウザではサポートされていません');
+    /** 利用可能なシリアルポート一覧を取得 */
+    async listPorts() {
+        if (!this.isElectron) {
+            throw new Error('Electron 環境でのみシリアルポート一覧を取得できます');
         }
+        return window.electronAPI!.serial.list();
+    }
+
+    /** シリアルポートに接続 */
+    async connect(portPath: string, baudRate: number = 115200): Promise<void> {
+        if (!this.isElectron) {
+            throw new Error('Electron 環境でのみシリアル接続できます');
+        }
+
+        this.statusCallback?.('connecting');
 
         try {
-            this.setStatus('connecting');
+            // IPC イベントリスナー設定
+            window.electronAPI!.serial.onData((data: number[]) => {
+                this.dataCallback?.(new Uint8Array(data));
+            });
 
-            // ユーザーにポート選択ダイアログを表示
-            this.port = await navigator.serial.requestPort();
-            await this.port.open({ baudRate });
+            window.electronAPI!.serial.onStatus((status: string) => {
+                if (status === 'connected') {
+                    this.connected = true;
+                    this.statusCallback?.('connected');
+                } else if (status === 'disconnected') {
+                    this.connected = false;
+                    this.statusCallback?.('disconnected');
+                }
+            });
 
-            // Reader / Writer のセットアップ
-            if (this.port.readable) {
-                this.reader = this.port.readable.getReader();
-            }
-            if (this.port.writable) {
-                this.writer = this.port.writable.getWriter();
-            }
+            window.electronAPI!.serial.onError((error: string) => {
+                this.errorCallback?.(error);
+            });
 
-            this.setStatus('connected');
-
-            // 受信ループ開始
-            this.startReadLoop();
-        } catch (err) {
-            this.setStatus('error');
-            this.emit('error', err);
-            throw err;
+            await window.electronAPI!.serial.connect(portPath, baudRate);
+        } catch (error) {
+            this.statusCallback?.('error');
+            this.errorCallback?.(error instanceof Error ? error.message : String(error));
+            throw error;
         }
+    }
+
+    /** データ書き込み */
+    async write(data: Uint8Array): Promise<void> {
+        if (!this.isElectron || !this.connected) {
+            throw new Error('シリアルポートが接続されていません');
+        }
+        await window.electronAPI!.serial.write(Array.from(data));
     }
 
     /** 切断 */
     async disconnect(): Promise<void> {
-        this.readLoop = false;
+        if (!this.isElectron) return;
 
-        try {
-            if (this.reader) {
-                await this.reader.cancel();
-                this.reader.releaseLock();
-                this.reader = null;
-            }
-            if (this.writer) {
-                this.writer.releaseLock();
-                this.writer = null;
-            }
-            if (this.port) {
-                await this.port.close();
-                this.port = null;
-            }
-        } catch {
-            // 切断時のエラーは無視
-        }
-
-        this.setStatus('disconnected');
-    }
-
-    /** データを送信 */
-    async write(data: Uint8Array): Promise<void> {
-        if (!this.writer) {
-            throw new Error('シリアルポートが接続されていません');
-        }
-        await this.writer.write(data);
-    }
-
-    /** 受信ループ */
-    private async startReadLoop(): Promise<void> {
-        this.readLoop = true;
-
-        while (this.readLoop && this.reader) {
-            try {
-                const { value, done } = await this.reader.read();
-                if (done) {
-                    this.readLoop = false;
-                    break;
-                }
-                if (value) {
-                    this.emit('data', value);
-                }
-            } catch (err) {
-                if (this.readLoop) {
-                    this.setStatus('error');
-                    this.emit('error', err);
-                }
-                this.readLoop = false;
-            }
-        }
+        window.electronAPI!.serial.removeAllListeners();
+        await window.electronAPI!.serial.disconnect();
+        this.connected = false;
+        this.statusCallback?.('disconnected');
     }
 }

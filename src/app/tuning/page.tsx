@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from 'react';
 import TuningTable from '../../components/Tuning/TuningTable';
+import { getEcuManager } from '../../lib/connection/ecu-manager';
 import styles from './page.module.css';
 
 // サンプルVEマップ
@@ -48,6 +49,76 @@ export default function TuningPage() {
             return next;
         });
     }, []);
+
+    const isElectron = typeof window !== 'undefined' && !!window.electronAPI;
+
+    const handleBurn = async () => {
+        try {
+            // ダミーのコマンド送信 (実際のマップ書き込みはページ単位の複雑なプロトコルが必要)
+            const encoder = new TextEncoder();
+            await getEcuManager().write(encoder.encode('W')); // 書き込みコマンド想定
+            alert('ECUへ書き込み要求を送信しました。(デモ)');
+        } catch (e) {
+            alert('ECUとの通信エラー: ' + e);
+        }
+    };
+
+    const handleRead = async () => {
+        try {
+            const encoder = new TextEncoder();
+            await getEcuManager().write(encoder.encode('R')); // 読み出しコマンド想定
+            alert('ECUへ読み込み要求を送信しました。(デモ)');
+        } catch (e) {
+            alert('ECUとの通信エラー: ' + e);
+        }
+    };
+
+    const handleSaveFile = async () => {
+        if (!isElectron) {
+            alert('ファイル保存はElectron環境でのみサポートされています。');
+            return;
+        }
+
+        const dataToSave = {
+            veMap: veData,
+            ignMap: ignData
+        };
+
+        try {
+            const success = await window.electronAPI!.file.save(
+                JSON.stringify(dataToSave, null, 2),
+                'nextspeed_tune.json'
+            );
+            if (success) {
+                alert('チューニングデータを保存しました。');
+            }
+        } catch (e) {
+            alert('保存に失敗しました: ' + e);
+        }
+    };
+
+    const handleLoadFile = async () => {
+        if (!isElectron) {
+            alert('ファイル読み込みはElectron環境でのみサポートされています。');
+            return;
+        }
+
+        try {
+            const fileContent = await window.electronAPI!.file.open();
+            if (fileContent) {
+                const parsed = JSON.parse(fileContent);
+                if (parsed.veMap && Array.isArray(parsed.veMap)) {
+                    setVeData(parsed.veMap);
+                }
+                if (parsed.ignMap && Array.isArray(parsed.ignMap)) {
+                    setIgnData(parsed.ignMap);
+                }
+                alert('チューニングデータを読み込みました。');
+            }
+        } catch (e) {
+            alert('読み込みに失敗しました: ' + e);
+        }
+    };
 
     return (
         <div className={styles.tuning}>
@@ -107,16 +178,16 @@ export default function TuningPage() {
 
             {/* 操作ボタン */}
             <div className={styles.actions}>
-                <button className={`${styles.actionBtn} ${styles.burnBtn}`}>
+                <button className={`${styles.actionBtn} ${styles.burnBtn}`} onClick={handleBurn}>
                     🔥 ECU に書き込み (Burn)
                 </button>
-                <button className={styles.actionBtn}>
+                <button className={styles.actionBtn} onClick={handleRead}>
                     📥 ECU から読み込み
                 </button>
-                <button className={styles.actionBtn}>
+                <button className={styles.actionBtn} onClick={handleSaveFile}>
                     💾 ファイルに保存
                 </button>
-                <button className={styles.actionBtn}>
+                <button className={styles.actionBtn} onClick={handleLoadFile}>
                     📂 ファイルから読み込み
                 </button>
             </div>

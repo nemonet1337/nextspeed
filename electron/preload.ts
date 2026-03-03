@@ -46,6 +46,16 @@ contextBridge.exposeInMainWorld('electronAPI', {
         },
     },
 
+    file: {
+        /** ファイルに保存 (JSON文字列など) */
+        save: (data: string, defaultPath?: string): Promise<boolean> =>
+            ipcRenderer.invoke('file:save', data, defaultPath),
+
+        /** ファイルを開いて内容を取得 */
+        open: (): Promise<string | null> =>
+            ipcRenderer.invoke('file:open'),
+    },
+
     /** Electronかどうかの判定 */
     isElectron: true,
 });

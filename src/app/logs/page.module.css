@@ -1,69 +1,67 @@
 .page {
     display: flex;
     flex-direction: column;
-    gap: 24px;
+    gap: 32px;
+}
+
+.headerSection {
+    background: rgba(30, 30, 45, 0.8);
+    border-radius: 12px;
+    padding: 24px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .pageTitle {
-    font-size: 1.6rem;
-    font-weight: 800;
-    margin: 0 0 6px;
-    background: linear-gradient(135deg, #fff, rgba(255, 255, 255, 0.7));
+    font-size: 28px;
+    font-weight: 700;
+    margin: 0;
+    background: linear-gradient(135deg, #00e5ff, #0077ff);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    background-clip: text;
 }
 
 .pageDesc {
-    font-size: 0.82rem;
-    color: var(--text-muted);
-    line-height: 1.5;
-    max-width: 520px;
+    font-size: 14px;
+    color: #a0a0a0;
+    margin: 8px 0 24px;
 }
 
-.placeholder {
+.controls {
     display: flex;
-    flex-direction: column;
+    gap: 16px;
+}
+
+.actionBtn {
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transition: all 0.2s ease;
+}
+
+.actionBtn:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: #00e5ff;
+}
+
+.chartSection {
+    background: rgba(30, 30, 45, 0.8);
+    border-radius: 12px;
+    padding: 24px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    min-height: 550px;
+}
+
+.emptyState {
+    display: flex;
     align-items: center;
     justify-content: center;
-    padding: 60px 24px;
-    background: var(--bg-card);
-    border: 1px solid var(--border-subtle);
-    border-radius: var(--radius);
-    text-align: center;
-}
-
-.placeholderIcon {
-    font-size: 3rem;
-    margin-bottom: 16px;
-    filter: grayscale(0.3);
-}
-
-.placeholderTitle {
-    font-size: 1.1rem;
-    font-weight: 700;
-    margin: 0 0 8px;
-    color: #fff;
-}
-
-.placeholderText {
-    font-size: 0.82rem;
-    color: var(--text-muted);
-    max-width: 400px;
-    line-height: 1.5;
-    margin-bottom: 16px;
-}
-
-.featureList {
-    list-style: none;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    font-size: 0.78rem;
-    color: var(--text-secondary);
-}
-
-.featureList li::before {
-    content: '✦ ';
-    color: var(--accent-cyan);
+    height: 500px;
+    color: #888;
+    font-size: 16px;
+    font-style: italic;
 }

@@ -68,15 +68,7 @@ export function useEcu() {
         }
     }, []);
 
-    /** Bluetooth 接続 */
-    const connectBluetooth = useCallback(async () => {
-        setError(null);
-        try {
-            await managerRef.current.connectBluetooth();
-        } catch (e) {
-            setError(String(e));
-        }
-    }, []);
+
 
     /** 切断 */
     const disconnect = useCallback(async () => {
@@ -91,7 +83,6 @@ export function useEcu() {
         ports,
         refreshPorts,
         connectSerial,
-        connectBluetooth,
         disconnect,
     };
 }

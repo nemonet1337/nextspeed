@@ -5,7 +5,7 @@
 // ============================================================
 // 接続
 // ============================================================
-export type ConnectionType = 'serial' | 'bluetooth';
+export type ConnectionType = 'serial';
 
 export type ConnectionStatus = 'disconnected' | 'connecting' | 'connected' | 'error';
 

@@ -6,12 +6,10 @@ import StatusIndicator from '../Dashboard/StatusIndicator';
 import styles from './Header.module.css';
 
 export default function Header() {
-    const { status, ecuType, ports, refreshPorts, connectSerial, connectBluetooth, disconnect } = useEcu();
+    const { status, ecuType, ports, refreshPorts, connectSerial, disconnect } = useEcu();
     const [showPortDialog, setShowPortDialog] = useState(false);
     const [selectedPort, setSelectedPort] = useState('');
     const [baudRate, setBaudRate] = useState(115200);
-
-    const isElectron = typeof window !== 'undefined' && !!(window as { electronAPI?: unknown }).electronAPI;
 
     /** USB接続ボタン押下 → ポート選択ダイアログ表示 */
     const handleSerialClick = async () => {
@@ -48,15 +46,6 @@ export default function Header() {
                             <span className={styles.btnIcon}>🔌</span>
                             USB 接続
                         </button>
-                        {!isElectron && (
-                            <button
-                                className={`${styles.btn} ${styles.secondary}`}
-                                onClick={() => connectBluetooth()}
-                            >
-                                <span className={styles.btnIcon}>📡</span>
-                                Bluetooth
-                            </button>
-                        )}
                     </>
                 ) : status === 'connecting' ? (
                     <button className={styles.btn} disabled>

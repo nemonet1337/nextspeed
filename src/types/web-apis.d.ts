@@ -20,8 +20,14 @@ export interface ElectronSerialAPI {
     removeAllListeners: () => void;
 }
 
+export interface ElectronFileAPI {
+    save: (data: string, defaultPath?: string) => Promise<boolean>;
+    open: () => Promise<string | null>;
+}
+
 export interface ElectronAPI {
     serial: ElectronSerialAPI;
+    file: ElectronFileAPI;
     isElectron: boolean;
 }
 

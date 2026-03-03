@@ -5,8 +5,7 @@ import Header from '../components/Layout/Header';
 
 export const metadata: Metadata = {
   title: 'NextSpeed – ECU Tuning Tool',
-  description:
-    'RusEFI / Speeduino 対応 ECU チューニングツール。USB・Bluetooth でリアルタイム接続し、センサー情報の閲覧やマップ編集を行います。',
+  description: 'RusEFI / Speeduino 対応 ECU チューニングツール。USBでリアルタイム接続し、センサー情報の閲覧やマップ編集を行います。',
 };
 
 export default function RootLayout({

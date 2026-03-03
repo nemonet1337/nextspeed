@@ -2,6 +2,7 @@ import { app, BrowserWindow } from 'electron';
 import * as path from 'path';
 import * as url from 'url';
 import { registerSerialHandlers } from './ipc/serial-handler';
+import { registerFileHandlers } from './ipc/file-handler';
 
 const isDev = process.env.NODE_ENV === 'development';
 
@@ -28,6 +29,7 @@ function createWindow() {
             mainWindow?.webContents.send(channel, ...args);
         }
     );
+    registerFileHandlers();
 
     const startUrl = isDev
         ? 'http://localhost:3000'

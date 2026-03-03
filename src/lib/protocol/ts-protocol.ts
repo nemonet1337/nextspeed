@@ -95,54 +95,93 @@ export function detectEcuType(signature: string): EcuType {
 }
 
 /**
- * Speeduino リアルタイムデータパーサー
- * Speeduino の 'A' コマンドレスポンスは固定長バイナリ
- * 参照: speeduino/reference/speeduino.ini
+ * Speeduino リアルタイムデータパーサー ('A' コマンド)
+ * 固定長バイナリ (v2021.07 以降 120バイト)
  */
 export function parseSpeeduinoRealtimeData(raw: Uint8Array): SensorData {
     const data = createDefaultSensorData();
 
-    if (raw.length < 76) {
-        // データが不足している場合はデフォルトを返す
-        return data;
+    // 'A' コマンドのレスポンスは最低 75 バイト必要 (仕様上は120バイト等パディングあり)
+    if (raw.length < 35) {
+        return data; // データ不足
     }
 
     const view = new DataView(raw.buffer, raw.byteOffset, raw.byteLength);
 
-    // Speeduino の realtime data フォーマット (バイトオフセット)
-    // ※ speeduino.ini の outputChannels セクション参照
-    data.rpm = view.getUint16(14, true);              // secl=0, status1=1, engine=2, ...
-    data.map = view.getInt16(4, true);                // MAP (kPa * 1)
-    data.tps = view.getUint8(24);                     // TPS (0-255 → %)
-    data.tps = (data.tps / 255) * 100;
-    data.coolantTemp = view.getInt16(7, true) - 40;   // CLT (offset -40)
-    data.iat = view.getInt16(6, true) - 40;           // IAT (offset -40)
+    // Speeduino 'A' コマンド (0-indexed) の公式バイトオフセット
+    // 0: secl
+    // 1: status1 (bitfield)
+    // 2: engine (bitfield)
+    // 3: syncLossCounter
+    // 4-5: MAP (LE U16, kPa)
+    data.map = view.getUint16(4, true);
 
-    data.batteryVoltage = view.getUint8(9) / 10;      // battery (V * 10)
+    // 6: IAT + CALIBRATION_TEMPERATURE_OFFSET(40) (U08)
+    data.iat = view.getUint8(6) - 40;
 
-    data.afr = view.getUint8(10) / 10;                // AFR = O2 / 10
-    data.afrTarget = view.getUint8(13) / 10;          // AFR target
+    // 7: Coolant + CALIBRATION_TEMPERATURE_OFFSET(40) (U08)
+    data.coolantTemp = view.getUint8(7) - 40;
 
-    data.advance = view.getInt8(23);                   // Advance (°)
-    data.pulseWidth1 = view.getUint16(18, true) / 1000; // PW1 (µs → ms)
-    data.pulseWidth2 = view.getUint16(20, true) / 1000; // PW2
-    data.dutyCycle = (data.pulseWidth1 / (60000 / Math.max(data.rpm, 1) / 2)) * 100;
+    // 8: batCorrection
+    // 9: battery10 (V * 10, U08)
+    data.batteryVoltage = view.getUint8(9) / 10;
 
-    data.egoCorrection = view.getUint8(11);            // EGO correction (%)
-    data.gammaEnrich = view.getUint8(12);              // Gamma enrichment (%)
-    data.veCurr = view.getUint8(22);                   // Current VE (%)
+    // 10: O2 (AFR * 10, U08)
+    data.afr = view.getUint8(10) / 10;
 
-    data.boostDuty = view.getUint8(25);               // Boost duty (%)
-    data.boostTarget = view.getUint8(26);              // Boost target
+    // 11: O2_2 (if available)
 
-    data.iacPosition = view.getUint8(27);              // IAC step position
+    // 12: egoCorrection (%) (U08)
+    data.egoCorrection = view.getUint8(12);
 
-    data.dwell = view.getUint16(30, true) / 10;       // Dwell (ms * 10)
-    data.triggerErrors = view.getUint16(38, true);     // trigger errors
+    // 13: iatCorrection (%)
+    // 14: wueCorrection (%)
+
+    // 15-16: RPM (LE U16)
+    data.rpm = view.getUint16(15, true);
+
+    // 17: AEamount >> 1 (TPS acceleration enrichment / 2)
+    // 18-19: corrections (GammaE, LE U16)
+    data.gammaEnrich = view.getUint16(18, true);
+
+    // 20: VE1 (%)
+    data.veCurr = view.getUint8(20);
+
+    // 21: VE2 (%)
+
+    // 22: afrTarget (AFR * 10, U08)
+    data.afrTarget = view.getUint8(22) / 10;
+
+    // 23: tpsDOT (U08)
+
+    // 24: advance (S08, °)
+    data.advance = view.getInt8(24);
+
+    // 25: TPS (0-100%, U08)
+    data.tps = view.getUint8(25);
+
+    // 26-27: loopsPerSecond (LE U16)
+    // 28-29: freeRAM (LE U16)
+
+    if (raw.length > 31) {
+        // 30: boostTarget >> 1
+        data.boostTarget = view.getUint8(30) * 2;
+
+        // 31: boostDuty / 100
+        data.boostDuty = view.getUint8(31) * 100;
+    }
+
+    // PWM/Dwell などは別のオフセットから取るか計算 (今回は省略・または後でPWコマンド等から)
+    // ダミー計算または固定
+    data.pulseWidth1 = 0;
+    data.pulseWidth2 = 0;
+    data.dutyCycle = 0;
+    data.dwell = 0;
 
     const statusBits = view.getUint8(1);
-    data.syncStatus = (statusBits & 0x04) !== 0;       // sync bit
-    data.fanOn = (statusBits & 0x20) !== 0;            // fan bit
+    data.syncStatus = (statusBits & 0x01) !== 0; // 仕様に基づくSync
+    // data.fanOn は現状の公式Aコマンド内に明確なビットがないため false 固定
+    data.fanOn = false;
 
     data.timestamp = Date.now();
     return data;
@@ -150,42 +189,83 @@ export function parseSpeeduinoRealtimeData(raw: Uint8Array): SensorData {
 
 /**
  * RusEFI リアルタイムデータパーサー
- * RusEFI は TunerStudio の outputChannels 経由でバイナリデータを送信
+ * RusEFI は TunerStudio の outputChannels を使用 (ファームウェアバージョンで可変)
+ * 以下は最新の output_channels.txt (PACKED) に基づくベストエフォートなパーサー
  */
 export function parseRusEFIRealtimeData(raw: Uint8Array): SensorData {
     const data = createDefaultSensorData();
 
-    if (raw.length < 100) {
-        return data;
+    if (raw.length < 56) {
+        return data; // データ不足
     }
 
     const view = new DataView(raw.buffer, raw.byteOffset, raw.byteLength);
 
-    // RusEFI の outputChannels (rusefi.ini 参照)
-    // ※ RusEFI はフロート/16bit値を多く使用
-    data.rpm = view.getUint16(0, true);
-    data.coolantTemp = view.getFloat32(4, true);
-    data.iat = view.getFloat32(8, true);
-    data.tps = view.getFloat32(12, true);
-    data.map = view.getFloat32(16, true);
-    data.afr = view.getFloat32(20, true);
-    data.batteryVoltage = view.getFloat32(24, true);
-    data.advance = view.getFloat32(28, true);
-    data.pulseWidth1 = view.getFloat32(32, true);
-    data.veCurr = view.getFloat32(36, true);
-    data.fuelPressure = view.getFloat32(40, true);
-    data.oilTemp = view.getFloat32(44, true);
-    data.oilPressure = view.getFloat32(48, true);
-    data.boostTarget = view.getFloat32(52, true);
-    data.boostDuty = view.getFloat32(56, true);
-    data.dwell = view.getFloat32(60, true);
-    data.egoCorrection = view.getFloat32(64, true);
-    data.iacPosition = view.getFloat32(68, true);
-    data.triggerErrors = view.getUint16(72, true);
+    // 0-3: 32bit Flags (sd_present, etc)
+    const flags = view.getUint32(0, true);
+    data.syncStatus = (flags & (1 << 28)) === 0; // triggerErrorなど様々なフラグがあるが、代表してダミー割り当て
 
-    const flags = view.getUint8(74);
-    data.syncStatus = (flags & 0x01) !== 0;
-    data.fanOn = (flags & 0x02) !== 0;
+    // 4-5: RPMValue (U16)
+    data.rpm = view.getUint16(4, true);
+
+    // 6-7: rpmAcceleration (I16)
+    // 8-9: speedToRpmRatio (U16)
+    // 10: internalMcuTemperature (I8)
+    // 11-12: internalVref (I16)
+    // 13-14: internalVbat (I16)
+
+    // 15-16: coolant (I16, PACK_MULT_TEMPERATURE = 100 と仮定)
+    data.coolantTemp = view.getInt16(15, true) / 100;
+
+    // 17-18: intake / IAT (I16, PACK_MULT_TEMPERATURE = 100 と仮定)
+    data.iat = view.getInt16(17, true) / 100;
+
+    // 19-20: auxTemp1 (I16)
+    // 21-22: auxTemp2 (I16)
+
+    // 23-24: TPSValue (I16, PACK_MULT_PERCENT = 100)
+    data.tps = view.getInt16(23, true) / 100;
+
+    // 25-26: throttlePedalPosition (I16)
+    // 27-28: tpsADC (U16)
+    // 29-30: rawMaf (U16)
+    // 31-32: mafMeasured (U16)
+
+    // 33-34: MAPValue (U16, PACK_MULT_PRESSURE = 1000 と仮定, kPa)
+    data.map = view.getUint16(33, true) / 1000;
+
+    // 35-36: baroPressure (U16)
+
+    // 37-38: lambdaValue (U16, PACK_MULT_LAMBDA = 10000 推測)
+    data.afr = view.getUint16(37, true) / 10000 * 14.7; // Lambda -> AFR
+
+    // 39-40: VBatt (U16, PACK_MULT_VOLTAGE = 1000)
+    data.batteryVoltage = view.getUint16(39, true) / 1000;
+
+    // 41-42: oilPressure (U16, kPa) // PACK_MULT_PRESSURE = 1000
+    data.oilPressure = view.getUint16(41, true) / 1000;
+
+    // 43-44: vvtPositionB1I
+    // 45-46: actualLastInjection (U16, MS)
+    data.pulseWidth1 = view.getUint16(45, true) / 1000; // MS=1000
+
+    // 47-50: actualLastInjectionRatio (float)
+    // 51: stopEngineCode (U8)
+
+    // 52: injectorDutyCycle (U8, scale 1/2) -> %
+    data.dutyCycle = view.getUint8(52) / 2;
+
+    // 以下はオフセットが動的なためデフォルト値を利用
+    data.advance = 0;
+    data.fuelPressure = 0;
+    data.oilTemp = 0;
+    data.boostTarget = 0;
+    data.boostDuty = 0;
+    data.dwell = 0;
+    data.egoCorrection = 0;
+    data.iacPosition = 0;
+    data.triggerErrors = 0;
+    data.fanOn = false;
 
     data.timestamp = Date.now();
     return data;

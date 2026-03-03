@@ -5,7 +5,6 @@
  * React コンポーネントから統一的に ECU に接続・データ取得を行う。
  */
 import { SerialManager } from './serial';
-import { BluetoothManager } from './bluetooth';
 import {
     buildSignatureCommand,
     buildRealtimeDataCommand,
@@ -27,7 +26,6 @@ export type EcuEventHandler = (type: EcuEventType, payload: unknown) => void;
 
 export class EcuConnectionManager {
     private serial: SerialManager;
-    private bluetooth: BluetoothManager;
     private buffer: ResponseBuffer;
     private pollTimer: ReturnType<typeof setInterval> | null = null;
     private listeners: EcuEventHandler[] = [];
@@ -39,7 +37,6 @@ export class EcuConnectionManager {
 
     constructor() {
         this.serial = new SerialManager();
-        this.bluetooth = new BluetoothManager();
         this.buffer = new ResponseBuffer();
 
         // Serial イベント (Electron IPC 版)
@@ -51,15 +48,6 @@ export class EcuConnectionManager {
         });
         this.serial.onError((error: string) => {
             this.emit('error', error);
-        });
-
-        // Bluetooth イベント
-        this.bluetooth.on((type, payload) => {
-            if (type === 'data') {
-                this.onData(payload as Uint8Array);
-            } else if (type === 'status') {
-                this.setStatus(payload as ConnectionStatus);
-            }
         });
     }
 
@@ -93,21 +81,11 @@ export class EcuConnectionManager {
         this.startPolling();
     }
 
-    /** Bluetooth 接続 */
-    async connectBluetooth(): Promise<void> {
-        this._connectionType = 'bluetooth';
-        await this.bluetooth.connect();
-        await this.identify();
-        this.startPolling();
-    }
-
     /** 切断 */
     async disconnect(): Promise<void> {
         this.stopPolling();
         if (this._connectionType === 'serial') {
             await this.serial.disconnect();
-        } else if (this._connectionType === 'bluetooth') {
-            await this.bluetooth.disconnect();
         }
         this._connectionType = null;
         this._ecuType = 'unknown';
@@ -129,12 +107,15 @@ export class EcuConnectionManager {
         }
     }
 
-    /** データ送信 */
+    /** データの直接送信 (外部からの書き込み用) */
+    public async write(data: Uint8Array): Promise<void> {
+        await this.send(data);
+    }
+
+    /** データ送信 (内部用) */
     private async send(data: Uint8Array): Promise<void> {
         if (this._connectionType === 'serial') {
             await this.serial.write(data);
-        } else if (this._connectionType === 'bluetooth') {
-            await this.bluetooth.write(data);
         }
     }
 

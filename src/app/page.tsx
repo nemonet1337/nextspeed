@@ -17,7 +17,7 @@ export default function DashboardPage() {
         <p className={styles.pageDesc}>
           {isConnected
             ? 'ECU に接続中 — リアルタイムでセンサーデータを表示しています'
-            : 'ECU に接続してリアルタイムデータを表示します。右上の接続ボタンから USB または Bluetooth で接続してください。'}
+            : 'ECU に接続してリアルタイムデータを表示します。右上の接続ボタンから USB で接続してください。'}
         </p>
       </section>
 
@@ -175,6 +175,6 @@ export default function DashboardPage() {
           ]}
         />
       </section>
-    </div>
+    </div >
   );
 }

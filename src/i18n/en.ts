@@ -18,6 +18,8 @@ export const en: Translations = {
 
     header: {
         usbConnect: 'USB Connect',
+        mockConnect: 'Demo',
+        triggerDragRace: '🏁 Drag Race',
         connecting: 'Connecting...',
         disconnect: 'Disconnect',
         portDialog: {
@@ -27,6 +29,12 @@ export const en: Translations = {
             cancel: 'Cancel',
             connect: 'Connect',
             noPorts: 'No available ports found',
+        },
+        mockDialog: {
+            title: 'Select Engine Profile',
+            engine: 'Engine',
+            cancel: 'Cancel',
+            connect: 'Connect',
         },
     },
 

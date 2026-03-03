@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { getEcuManager, type EcuEventType } from '../lib/connection/ecu-manager';
 import type { ConnectionStatus, EcuType, SensorData } from '../lib/types/ecu';
+import type { EngineProfileId } from '../lib/connection/mock-ecu';
 import { createDefaultSensorData } from '../lib/types/ecu';
 
 interface PortInfo {
@@ -17,6 +18,7 @@ interface PortInfo {
  */
 export function useEcu() {
     const [status, setStatus] = useState<ConnectionStatus>('disconnected');
+    const [isMock, setIsMock] = useState(false);
     const [ecuType, setEcuType] = useState<EcuType>('unknown');
     const [sensorData, setSensorData] = useState<SensorData>(createDefaultSensorData());
     const [error, setError] = useState<string | null>(null);
@@ -30,6 +32,7 @@ export function useEcu() {
             switch (type) {
                 case 'status':
                     setStatus(payload as ConnectionStatus);
+                    setIsMock(mgr.connectionType === 'mock');
                     if (payload === 'disconnected') setError(null);
                     break;
                 case 'ecuType':
@@ -68,7 +71,20 @@ export function useEcu() {
         }
     }, []);
 
+    /** モック接続 (デモ用) */
+    const connectMock = useCallback(async (profileId: EngineProfileId = 'i4_turbo', forcedEcuType?: EcuType) => {
+        setError(null);
+        try {
+            await managerRef.current.connectMock(profileId, forcedEcuType);
+        } catch (e) {
+            setError(String(e));
+        }
+    }, []);
 
+    /** ドラッグレースデモのトリガー */
+    const triggerDragRace = useCallback(() => {
+        managerRef.current.triggerMockDragRace();
+    }, []);
 
     /** 切断 */
     const disconnect = useCallback(async () => {
@@ -77,12 +93,15 @@ export function useEcu() {
 
     return {
         status,
+        isMock,
         ecuType,
         sensorData,
         error,
         ports,
         refreshPorts,
         connectSerial,
+        connectMock,
+        triggerDragRace,
         disconnect,
     };
 }

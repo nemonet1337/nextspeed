@@ -5,6 +5,7 @@
  * React コンポーネントから統一的に ECU に接続・データ取得を行う。
  */
 import { SerialManager } from './serial';
+import { MockEcuProvider, type EngineProfileId } from './mock-ecu';
 import {
     buildSignatureCommand,
     buildRealtimeDataCommand,
@@ -26,6 +27,7 @@ export type EcuEventHandler = (type: EcuEventType, payload: unknown) => void;
 
 export class EcuConnectionManager {
     private serial: SerialManager;
+    private mockEcu: MockEcuProvider | null = null;
     private buffer: ResponseBuffer;
     private pollTimer: ReturnType<typeof setInterval> | null = null;
     private listeners: EcuEventHandler[] = [];
@@ -81,11 +83,44 @@ export class EcuConnectionManager {
         this.startPolling();
     }
 
+    /** モック接続 (ダミーデータ) */
+    async connectMock(profileId: EngineProfileId = 'i4_turbo', ecuType: EcuType = 'speeduino'): Promise<void> {
+        this.setStatus('connecting');
+        this._connectionType = 'mock';
+        this._ecuType = ecuType;
+        this.emit('ecuType', this._ecuType);
+
+        this.mockEcu = new MockEcuProvider(profileId);
+        this.mockEcu.onData((data: SensorData) => {
+            if (this._connectionType === 'mock') {
+                this._sensorData = data;
+                this.emit('sensorData', data);
+            }
+        });
+
+        // 擬似的な接続遅延
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        this.mockEcu.start();
+        this.setStatus('connected');
+    }
+
+    /** ドラッグレースデモのトリガー（モック接続時のみ有効） */
+    triggerMockDragRace(): void {
+        if (this._connectionType === 'mock' && this.mockEcu) {
+            this.mockEcu.triggerDragRace();
+        }
+    }
+
     /** 切断 */
     async disconnect(): Promise<void> {
         this.stopPolling();
         if (this._connectionType === 'serial') {
             await this.serial.disconnect();
+        } else if (this._connectionType === 'mock' && this.mockEcu) {
+            this.mockEcu.stop();
+            this.mockEcu = null;
+            this.setStatus('disconnected');
         }
         this._connectionType = null;
         this._ecuType = 'unknown';

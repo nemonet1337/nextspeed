@@ -4,8 +4,7 @@
 
 // ============================================================
 // 接続
-// ============================================================
-export type ConnectionType = 'serial';
+export type ConnectionType = 'serial' | 'mock';
 
 export type ConnectionStatus = 'disconnected' | 'connecting' | 'connected' | 'error';
 

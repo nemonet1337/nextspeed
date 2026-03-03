@@ -3,15 +3,19 @@
 import { useState, useEffect } from 'react';
 import { useEcu } from '../../hooks/useEcu';
 import { useTranslation } from '../../hooks/useTranslation';
+import type { EngineProfileId } from '../../lib/connection/mock-ecu';
 import StatusIndicator from '../Dashboard/StatusIndicator';
 import styles from './Header.module.css';
 
 export default function Header() {
-    const { status, ecuType, ports, refreshPorts, connectSerial, disconnect } = useEcu();
+    const { status, isMock, ecuType, ports, refreshPorts, connectSerial, connectMock, triggerDragRace, disconnect } = useEcu();
     const { t } = useTranslation();
     const [showPortDialog, setShowPortDialog] = useState(false);
     const [selectedPort, setSelectedPort] = useState('');
     const [baudRate, setBaudRate] = useState(115200);
+
+    const [showMockDialog, setShowMockDialog] = useState(false);
+    const [selectedEngine, setSelectedEngine] = useState<EngineProfileId>('i4_turbo');
 
     /** USB接続ボタン押下 → ポート選択ダイアログ表示 */
     const handleSerialClick = async () => {
@@ -24,6 +28,12 @@ export default function Header() {
         if (!selectedPort) return;
         setShowPortDialog(false);
         await connectSerial(selectedPort, baudRate);
+    };
+
+    /** モック接続 (デモ) */
+    const handleMockConnect = async () => {
+        setShowMockDialog(false);
+        await connectMock(selectedEngine, 'speeduino');
     };
 
     useEffect(() => {
@@ -40,7 +50,14 @@ export default function Header() {
 
             <div className={styles.right}>
                 {status === 'disconnected' ? (
-                    <>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                        <button
+                            className={`${styles.btn} ${styles.secondary}`}
+                            onClick={() => setShowMockDialog(true)}
+                        >
+                            <span className={styles.btnIcon}>🎮</span>
+                            {t('header.mockConnect')}
+                        </button>
                         <button
                             className={`${styles.btn} ${styles.primary}`}
                             onClick={handleSerialClick}
@@ -48,18 +65,28 @@ export default function Header() {
                             <span className={styles.btnIcon}>🔌</span>
                             {t('header.usbConnect')}
                         </button>
-                    </>
+                    </div>
                 ) : status === 'connecting' ? (
                     <button className={styles.btn} disabled>
                         {t('header.connecting')}
                     </button>
                 ) : (
-                    <button
-                        className={`${styles.btn} ${styles.danger}`}
-                        onClick={() => disconnect()}
-                    >
-                        {t('header.disconnect')}
-                    </button>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                        {isMock && (
+                            <button
+                                className={`${styles.btn} ${styles.secondary}`}
+                                onClick={triggerDragRace}
+                            >
+                                {t('header.triggerDragRace')}
+                            </button>
+                        )}
+                        <button
+                            className={`${styles.btn} ${styles.danger}`}
+                            onClick={() => disconnect()}
+                        >
+                            {t('header.disconnect')}
+                        </button>
+                    </div>
                 )}
             </div>
 
@@ -115,6 +142,43 @@ export default function Header() {
                                 disabled={!selectedPort || ports.length === 0}
                             >
                                 {t('header.portDialog.connect')}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* モック接続ダイアログ */}
+            {showMockDialog && (
+                <div className={styles.dialogOverlay} onClick={() => setShowMockDialog(false)}>
+                    <div className={styles.dialog} onClick={(e) => e.stopPropagation()}>
+                        <h3>{t('header.mockDialog.title')}</h3>
+                        <div className={styles.dialogBody}>
+                            <label className={styles.label}>
+                                {t('header.mockDialog.engine')}
+                                <select
+                                    className={styles.select}
+                                    value={selectedEngine}
+                                    onChange={(e) => setSelectedEngine(e.target.value as EngineProfileId)}
+                                >
+                                    <option value="i4_turbo">Inline-4 2.0L Turbo</option>
+                                    <option value="v6_twinturbo">V6 3.8L Twin Turbo</option>
+                                    <option value="v8_na">V8 6.2L NA OHV</option>
+                                </select>
+                            </label>
+                        </div>
+                        <div className={styles.dialogActions}>
+                            <button
+                                className={`${styles.btn} ${styles.secondary}`}
+                                onClick={() => setShowMockDialog(false)}
+                            >
+                                {t('header.mockDialog.cancel')}
+                            </button>
+                            <button
+                                className={`${styles.btn} ${styles.primary}`}
+                                onClick={handleMockConnect}
+                            >
+                                {t('header.mockDialog.connect')}
                             </button>
                         </div>
                     </div>

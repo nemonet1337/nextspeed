@@ -15,6 +15,8 @@ export interface Translations {
     };
     header: {
         usbConnect: string;
+        mockConnect: string;
+        triggerDragRace: string;
         connecting: string;
         disconnect: string;
         portDialog: {
@@ -24,6 +26,12 @@ export interface Translations {
             cancel: string;
             connect: string;
             noPorts: string;
+        };
+        mockDialog: {
+            title: string;
+            engine: string;
+            cancel: string;
+            connect: string;
         };
     };
     status: {
@@ -156,6 +164,8 @@ export const ja: Translations = {
     // ヘッダー
     header: {
         usbConnect: 'USB 接続',
+        mockConnect: 'デモ接続',
+        triggerDragRace: '🏁 ドラッグレース',
         connecting: '接続中...',
         disconnect: '切断',
         portDialog: {
@@ -165,6 +175,12 @@ export const ja: Translations = {
             cancel: 'キャンセル',
             connect: '接続',
             noPorts: '利用可能なポートが見つかりません',
+        },
+        mockDialog: {
+            title: 'エンジンプロファイル選択',
+            engine: 'エンジン',
+            cancel: 'キャンセル',
+            connect: '接続',
         },
     },
 

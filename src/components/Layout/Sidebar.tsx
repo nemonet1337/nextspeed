@@ -13,6 +13,8 @@ export default function Sidebar() {
         { href: '/', label: t('nav.dashboard'), icon: '⚡' },
         { href: '/tuning', label: t('nav.tuning'), icon: '🔧' },
         { href: '/logs', label: t('nav.logs'), icon: '📊' },
+        { href: '/failsafe', label: t('nav.failsafe'), icon: '🚨' },
+        { href: '/features', label: t('nav.features'), icon: '🏎️' },
         { href: '/settings', label: t('nav.settings'), icon: '⚙️' },
     ];
 

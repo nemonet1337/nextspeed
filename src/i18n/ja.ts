@@ -11,6 +11,8 @@ export interface Translations {
         dashboard: string;
         tuning: string;
         logs: string;
+        failsafe: string;
+        features: string;
         settings: string;
     };
     header: {
@@ -91,8 +93,15 @@ export interface Translations {
         desc: string;
         veTab: string;
         ignTab: string;
+        afrTab: string;
+        boostTab: string;
+        vvtTab: string;
         veTableName: string;
         ignTableName: string;
+        afrTableName: string;
+        boostTableName: string;
+        vvtTableName: string;
+        paramsTab: string;
         burn: string;
         read: string;
         saveFile: string;
@@ -137,10 +146,109 @@ export interface Translations {
         displacement: string;
         cylinders: string;
         injectorSize: string;
+        // ブースト制御
+        boostControl: string;
+        boostEnabled: string;
+        boostMode: string;
+        boostModeOpen: string;
+        boostModeClosed: string;
+        maxBoost: string;
+        boostCutPoint: string;
+        solenoidFreq: string;
+        // 電子スロットル (ETB)
+        etbControl: string;
+        etbEnabled: string;
+        pedalMin: string;
+        pedalMax: string;
+        throttleMin: string;
+        throttleMax: string;
+        etbPGain: string;
+        etbIGain: string;
+        etbDGain: string;
+        // 可変バルブタイミング (VVT)
+        vvtControl: string;
+        vvtEnabled: string;
+        vvtMode: string;
+        vvtModeOnOff: string;
+        vvtModeOpenLoop: string;
+        vvtModeClosedLoop: string;
+        vvtMaxAdvance: string;
+        vvtMinAdvance: string;
+        vvtFreq: string;
+        // アイドル制御
+        idleControl: string;
+        idleMode: string;
+        idleModeStepper: string;
+        idleModePWM: string;
+        idleModeETB: string;
+        idleTargetWarm: string;
+        idleTargetCold: string;
+        iacMaxOpen: string;
+        idleAdvance: string;
+        // 始動・暖機補正
+        startupEnrich: string;
+        crankingRpm: string;
+        crankingEnrich: string;
+        primingPulse: string;
+        warmupEnrich: string;
+        asePercent: string;
+        aseDuration: string;
+        aePercent: string;
+        // 燃料カット・保護
+        fuelCutProtection: string;
+        dfcoEnableRpm: string;
+        dfcoRecoverRpm: string;
+        dfcoTpsThreshold: string;
+        softRevLimit: string;
+        hardRevLimit: string;
+        revLimitMode: string;
+        revLimitFuelCut: string;
+        revLimitIgnCut: string;
+        revLimitBoth: string;
+        // フェイルセーフ温度設定
+        failsafe: string;
+        failsafeNote: string;
+        maxCltWarning: string;
+        maxCltCut: string;
+        maxIat: string;
+        maxOilTemp: string;
+        minOilPressure: string;
+        minBatteryV: string;
+        // 便利機能
+        convenienceFeatures: string;
+        launchControl: string;
+        launchEnabled: string;
+        launchRpm: string;
+        launchRetard: string;
+        launchBoostCut: string;
+        flatShift: string;
+        flatShiftEnabled: string;
+        flatShiftRpmDrop: string;
+        autoBlip: string;
+        autoBlipEnabled: string;
+        autoBlipDuration: string;
+        // アクセサリ
+        accessories: string;
+        fanOnTemp: string;
+        fanOffTemp: string;
+        fanHysteresis: string;
+        fuelPumpPrime: string;
+        tachoEnabled: string;
+        nitrousEnabled: string;
+        acControlEnabled: string;
+        acLowRpm: string;
+        // フレックスフューエル
+        flexFuel: string;
+        flexFuelEnabled: string;
+        flexSensorEnabled: string;
+        flexE0Afr: string;
+        flexE85Afr: string;
     };
     common: {
         on: string;
         off: string;
+        enabled: string;
+        disabled: string;
     };
 }
 
@@ -159,6 +267,8 @@ export const ja: Translations = {
         dashboard: 'ダッシュボード',
         tuning: 'チューニング',
         logs: 'データログ',
+        failsafe: 'フェイルセーフ',
+        features: '便利機能',
         settings: '設定',
     },
 
@@ -252,8 +362,15 @@ export const ja: Translations = {
         desc: 'VE マップ・点火マップの閲覧と編集を行います。セルをクリックして値を変更できます。',
         veTab: 'VE マップ (燃料)',
         ignTab: '点火マップ',
+        afrTab: 'AFR ターゲット',
+        boostTab: 'ブースト目標',
+        vvtTab: 'VVT マップ',
         veTableName: 'VE テーブル (Volumetric Efficiency)',
         ignTableName: '点火マップ (Ignition Advance)',
+        afrTableName: 'AFR ターゲットテーブル (Air-Fuel Ratio)',
+        boostTableName: 'ブースト目標テーブル (Boost Target)',
+        vvtTableName: 'VVT マップ (Variable Valve Timing)',
+        paramsTab: 'パラメータ設定',
         burn: '🔥 ECU に書き込み (Burn)',
         read: '📥 ECU から読み込み',
         saveFile: '💾 ファイルに保存',
@@ -302,11 +419,120 @@ export const ja: Translations = {
         displacement: '排気量 (cc)',
         cylinders: '気筒数',
         injectorSize: 'インジェクターサイズ (cc/min)',
+
+        // ブースト制御
+        boostControl: 'ブースト制御',
+        boostEnabled: 'ブースト制御を有効化',
+        boostMode: '制御方式',
+        boostModeOpen: 'オープンループ',
+        boostModeClosed: 'クローズドループ',
+        maxBoost: '最大ブースト圧 (kPa)',
+        boostCutPoint: 'ブーストカットポイント (kPa)',
+        solenoidFreq: 'ソレノイド周波数 (Hz)',
+
+        // 電子スロットル (ETB)
+        etbControl: '電子スロットル (ETB / DBW)',
+        etbEnabled: '電子スロットルを有効化',
+        pedalMin: 'ペダル最小 ADC',
+        pedalMax: 'ペダル最大 ADC',
+        throttleMin: 'スロットル最小 ADC',
+        throttleMax: 'スロットル最大 ADC',
+        etbPGain: 'PID P ゲイン',
+        etbIGain: 'PID I ゲイン',
+        etbDGain: 'PID D ゲイン',
+
+        // 可変バルブタイミング (VVT)
+        vvtControl: '可変バルブタイミング (VVT)',
+        vvtEnabled: 'VVT を有効化',
+        vvtMode: 'VVT モード',
+        vvtModeOnOff: 'ON/OFF',
+        vvtModeOpenLoop: 'オープンループ',
+        vvtModeClosedLoop: 'クローズドループ',
+        vvtMaxAdvance: '最大進角 (°)',
+        vvtMinAdvance: '最小進角 (°)',
+        vvtFreq: '制御周波数 (Hz)',
+
+        // アイドル制御
+        idleControl: 'アイドル制御',
+        idleMode: 'アイドル方式',
+        idleModeStepper: 'ステッパーモーター',
+        idleModePWM: 'PWM バルブ',
+        idleModeETB: '電子スロットル (ETB)',
+        idleTargetWarm: '目標アイドル RPM (暖機後)',
+        idleTargetCold: '目標アイドル RPM (冷間時)',
+        iacMaxOpen: 'IAC 最大開度 (%)',
+        idleAdvance: 'アイドル進角 (°)',
+
+        // 始動・暖機補正
+        startupEnrich: '始動・暖機補正',
+        crankingRpm: 'クランキング RPM 閾値',
+        crankingEnrich: 'クランキング補正量 (%)',
+        primingPulse: 'プライミングパルス (ms)',
+        warmupEnrich: '暖機補正量 (%)',
+        asePercent: '始動後補正 ASE (%)',
+        aseDuration: 'ASE 補正期間 (秒)',
+        aePercent: '加速補正 AE (%)',
+
+        // 燃料カット・保護
+        fuelCutProtection: '燃料カット・保護',
+        dfcoEnableRpm: 'DFCO 有効 RPM',
+        dfcoRecoverRpm: 'DFCO 復帰 RPM',
+        dfcoTpsThreshold: 'DFCO TPS 閾値 (%)',
+        softRevLimit: 'ソフトレブリミット (rpm)',
+        hardRevLimit: 'ハードレブリミット (rpm)',
+        revLimitMode: 'レブリミット方式',
+        revLimitFuelCut: '燃料カット',
+        revLimitIgnCut: '点火カット',
+        revLimitBoth: '両方',
+
+        // フェイルセーフ温度設定
+        failsafe: 'フェイルセーフ・保護設定',
+        failsafeNote: 'エンジン保護のための各種上限/下限設定',
+        maxCltWarning: '水温上限 警告 (°C)',
+        maxCltCut: '水温上限 カット (°C)',
+        maxIat: '吸気温度 上限 (°C)',
+        maxOilTemp: '油温 上限 (°C)',
+        minOilPressure: '油圧 下限 (kPa)',
+        minBatteryV: 'バッテリー電圧 下限 (V)',
+
+        // 便利機能
+        convenienceFeatures: '便利機能',
+        launchControl: 'ローンチコントロール',
+        launchEnabled: 'ローンチコントロールを有効化',
+        launchRpm: 'ローンチ リミット RPM',
+        launchRetard: '点火リタード (°)',
+        launchBoostCut: 'ブーストカット有効',
+        flatShift: 'フラットシフト',
+        flatShiftEnabled: 'フラットシフトを有効化',
+        flatShiftRpmDrop: 'カット RPM ドロップ',
+        autoBlip: 'オートブリッピング',
+        autoBlipEnabled: 'オートブリッピングを有効化',
+        autoBlipDuration: 'ブリップ期間 (ms)',
+
+        // アクセサリ
+        accessories: 'アクセサリ',
+        fanOnTemp: 'ファン ON 温度 (°C)',
+        fanOffTemp: 'ファン OFF 温度 (°C)',
+        fanHysteresis: 'ファンヒステリシス (°C)',
+        fuelPumpPrime: '燃料ポンプ プライム時間 (秒)',
+        tachoEnabled: 'タコ出力を有効化',
+        nitrousEnabled: 'ナイトラスを有効化',
+        acControlEnabled: 'A/C 制御を有効化',
+        acLowRpm: 'A/C カット RPM 下限',
+
+        // フレックスフューエル
+        flexFuel: 'フレックスフューエル',
+        flexFuelEnabled: 'フレックスフューエルを有効化',
+        flexSensorEnabled: 'エタノール含有率センサー',
+        flexE0Afr: 'E0 時 AFR',
+        flexE85Afr: 'E85 時 AFR',
     },
 
     // 共通
     common: {
         on: 'ON',
         off: 'OFF',
+        enabled: '有効',
+        disabled: '無効',
     },
 };

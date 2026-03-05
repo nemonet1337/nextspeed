@@ -13,6 +13,7 @@ export interface Translations {
         logs: string;
         failsafe: string;
         features: string;
+        accessories: string;
         settings: string;
     };
     header: {
@@ -269,6 +270,7 @@ export const ja: Translations = {
         logs: 'データログ',
         failsafe: 'フェイルセーフ',
         features: '便利機能',
+        accessories: 'アクセサリ',
         settings: '設定',
     },
 

@@ -15,6 +15,7 @@ export const en: Translations = {
         logs: 'Data Logs',
         failsafe: 'Failsafe',
         features: 'Features',
+        accessories: 'Accessories',
         settings: 'Settings',
     },
 

@@ -5,6 +5,7 @@ import { getEcuManager, type EcuEventType } from '../lib/connection/ecu-manager'
 import type { ConnectionStatus, EcuType, SensorData } from '../lib/types/ecu';
 import type { EngineProfileId } from '../lib/connection/mock-ecu';
 import { createDefaultSensorData } from '../lib/types/ecu';
+import toast from 'react-hot-toast';
 
 interface PortInfo {
     path: string;
@@ -66,8 +67,10 @@ export function useEcu() {
         setError(null);
         try {
             await managerRef.current.connectSerial(portPath, baudRate);
+            toast.success(`USB接続しました (${portPath})`);
         } catch (e) {
             setError(String(e));
+            toast.error(`接続エラー: ${String(e)}`);
         }
     }, []);
 
@@ -76,8 +79,10 @@ export function useEcu() {
         setError(null);
         try {
             await managerRef.current.connectMock(profileId, forcedEcuType);
+            toast.success('デモ接続しました');
         } catch (e) {
             setError(String(e));
+            toast.error(`デモ接続エラー: ${String(e)}`);
         }
     }, []);
 
@@ -88,7 +93,12 @@ export function useEcu() {
 
     /** 切断 */
     const disconnect = useCallback(async () => {
-        await managerRef.current.disconnect();
+        try {
+            await managerRef.current.disconnect();
+            toast.success('切断しました');
+        } catch (e) {
+            toast.error(`切断エラー: ${String(e)}`);
+        }
     }, []);
 
     return {

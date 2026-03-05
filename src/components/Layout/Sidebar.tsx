@@ -15,6 +15,7 @@ export default function Sidebar() {
         { href: '/logs', label: t('nav.logs'), icon: '📊' },
         { href: '/failsafe', label: t('nav.failsafe'), icon: '🚨' },
         { href: '/features', label: t('nav.features'), icon: '🏎️' },
+        { href: '/accessories', label: t('nav.accessories'), icon: '🔌' },
         { href: '/settings', label: t('nav.settings'), icon: '⚙️' },
     ];
 

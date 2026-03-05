@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { LanguageProvider } from '../contexts/LanguageContext';
 import AppShell from '../components/Layout/AppShell';
+import { Toaster } from 'react-hot-toast';
 
 export const metadata: Metadata = {
   title: 'NextSpeed – ECU Tuning Tool',
@@ -18,6 +19,17 @@ export default function RootLayout({
       <body>
         <LanguageProvider>
           <AppShell>{children}</AppShell>
+          <Toaster
+            position="bottom-right"
+            toastOptions={{
+              style: {
+                background: 'rgba(30, 30, 45, 0.9)',
+                color: '#fff',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                backdropFilter: 'blur(10px)',
+              },
+            }}
+          />
         </LanguageProvider>
       </body>
     </html>
